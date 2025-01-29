@@ -1,9 +1,7 @@
 package main
 
-import (
-	"fmt"
-)
+import "github.com/MrShanks/Taska/cmd"
 
 func main() {
-	fmt.Println("Hello from Taksa")
+	cmd.Execute()
 }
