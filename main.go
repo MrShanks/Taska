@@ -1,9 +1,9 @@
 package main
 
 import (
-	"fmt"
+	"github.com/MrShanks/Taska/tskmgt"
 )
 
 func main() {
-	fmt.Println("Hello from Taksa")
+	tskmgt.Listner()
 }
