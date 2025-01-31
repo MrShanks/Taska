@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/MrShanks/Taska/tskmgr"
+	"github.com/MrShanks/Taska/server/tskmgr"
 )
 
 func main() {
