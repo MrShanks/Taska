@@ -1,9 +1,9 @@
 package main
 
 import (
-	"github.com/MrShanks/Taska/tskmgt"
+	"github.com/MrShanks/Taska/tskmgr"
 )
 
 func main() {
-	tskmgt.Listner()
+	tskmgr.Listner()
 }

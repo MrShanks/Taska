@@ -1,4 +1,4 @@
-package tskmgt
+package tskmgr
 
 import (
 	"errors"
@@ -9,14 +9,20 @@ import (
 )
 
 func Root(w http.ResponseWriter, r *http.Request) {
-	fmt.Printf("got request on /")
+	fmt.Printf("Got request on / endpoint")
 	io.WriteString(w, "Welcome to your dashboard")
 }
 
 func Listner() {
-	http.HandleFunc("/", Root)
+	webMux := http.NewServeMux()
+	webMux.HandleFunc("/", Root)
 
-	err := http.ListenAndServe(":8080", nil)
+	httpServer := &http.Server{
+		Addr:    ":8080",
+		Handler: webMux,
+	}
+
+	err := httpServer.ListenAndServe()
 	if errors.Is(err, http.ErrServerClosed) {
 		fmt.Printf("Server closed\n")
 	} else if err != nil {
