@@ -16,8 +16,11 @@ jobs:
       with:
         go-version: '1.23.5'
 
-    - name: Build
-      run: go build -v ./...
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y yq  # Install yq for parsing YAML files
 
-    - name: Test
-      run: go test -v ./...
+    - name: Run make all
+      run: |
+        make all  # This triggers the make all command
