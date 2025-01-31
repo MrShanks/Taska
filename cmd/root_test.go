@@ -15,8 +15,7 @@ func TestRootCmd(t *testing.T) {
 			t.Fatalf("rootCmd.Execute() error = %v, want nil", err)
 		}
 
-		// expected := `taskcli is your CLI best friend`
-		expected := `test build should fail and merge should be blocked`
+		expected := `taskcli is your CLI best friend`
 		output := capture.String()
 
 		if !contains(output, expected) {
