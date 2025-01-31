@@ -1,0 +1,4 @@
+app:
+  name: taskcli
+  version: 0.0.0
+  description: "A command-line tool for managing tasks"
