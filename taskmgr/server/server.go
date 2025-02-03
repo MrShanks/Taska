@@ -32,5 +32,4 @@ func Listen(version string) {
 		logger.ErrorLogger.Printf("error starting server: %s\n", err)
 		os.Exit(1)
 	}
-
 }
