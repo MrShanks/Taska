@@ -22,6 +22,9 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y yq  # Install yq for parsing YAML files
 
+    - name: debug Makefile
+      run: ls -l taskcli
+
   # taskcli section
     - name: Run tests taskcli
       run: |
