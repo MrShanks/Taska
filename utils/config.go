@@ -1,4 +1,4 @@
-package cmd
+package utils
 
 import (
 	"log"
@@ -15,7 +15,7 @@ type Config struct {
 	} `yaml:"app"`
 }
 
-func readVersionFromConfig() string {
+func ReadVersionFromConfig() string {
 	file, err := os.ReadFile("config.yaml")
 	if err != nil {
 		log.Printf("Failed to open the config file: %v", err)

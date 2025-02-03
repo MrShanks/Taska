@@ -22,6 +22,20 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y yq  # Install yq for parsing YAML files
 
-    - name: Run make all
+  # taskcli section
+    - name: Run tests taskcli
       run: |
-        make all  # This triggers the make all command
+        make -C taskcli test 
+
+    - name: Build taskcli
+      run: |
+        make -C taskcli build 
+
+  # taskmgr section
+    - name: Run tests taskmgr
+      run: |
+        make -C taskmgr test 
+
+    - name: Build taskmgr
+      run: |
+        make -C taskmgr build 
