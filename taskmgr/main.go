@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/MrShanks/Taska/taskmgr/logger"
+	"github.com/MrShanks/Taska/common/logger"
 	"github.com/MrShanks/Taska/taskmgr/server"
 	"github.com/MrShanks/Taska/utils"
 )
