@@ -14,7 +14,7 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, "Welcome to your dashboard\n")
 }
 
-func Listen() {
+func Listen(version string) {
 	webMux := http.NewServeMux()
 	webMux.HandleFunc("/", HomeHandler)
 
@@ -22,6 +22,8 @@ func Listen() {
 		Addr:    ":8080",
 		Handler: webMux,
 	}
+
+	logger.InfoLogger.Printf("Server version: %s listening at %s", version, httpServer.Addr)
 
 	err := httpServer.ListenAndServe()
 	if errors.Is(err, http.ErrServerClosed) {

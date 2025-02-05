@@ -8,6 +8,9 @@
 *.so
 *.dylib
 
+taskcli/taskcli
+taskmgr/taskmgr
+
 # Test binary, built with `go test -c`
 *.test
 

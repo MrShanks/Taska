@@ -1,0 +1,4 @@
+app:
+  name: taskmgr
+  version: 0.0.0
+  description: "A manager to orchestrate your tasks"

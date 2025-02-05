@@ -1,7 +1,7 @@
 package main
 
-import "github.com/MrShanks/Taska/taskcli/client"
+import "github.com/MrShanks/Taska/taskcli/cmd"
 
 func main() {
-	client.Execute()
+	cmd.Execute()
 }
