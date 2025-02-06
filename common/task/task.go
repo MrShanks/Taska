@@ -1,4 +1,4 @@
-package model
+package task
 
 import (
 	"github.com/google/uuid"
@@ -16,4 +16,8 @@ func New(title, desc string) *Task {
 		Title: title,
 		Desc:  desc,
 	}
+}
+
+type TaskStore interface {
+	GetTasks() []*Task
 }
