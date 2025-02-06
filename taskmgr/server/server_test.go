@@ -9,7 +9,7 @@ import (
 	"github.com/MrShanks/Taska/common/logger"
 )
 
-func TestGetTasksHanlder(t *testing.T) {
+func TestGetTasksHandler(t *testing.T) {
 	logger.InitLogger()
 	t.Run("returns all tasks", func(t *testing.T) {
 		request, _ := http.NewRequest(http.MethodGet, "/tasks", nil)
