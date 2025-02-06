@@ -15,10 +15,14 @@ func TestGetTasksHanlder(t *testing.T) {
 		request, _ := http.NewRequest(http.MethodGet, "/tasks", nil)
 		response := httptest.NewRecorder()
 
-		GetTasksHandler(response, request)
+		taskHandler := TasksHandler{
+			store: IMD,
+		}
+
+		taskHandler.ServeHTTP(response, request)
 
 		got := response.Body.String()
-		wantBytes, _ := json.Marshal(tasks)
+		wantBytes, _ := json.Marshal(IMD.GetTasks())
 		want := string(wantBytes)
 
 		if got != want {
