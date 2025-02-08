@@ -3,6 +3,7 @@ package server
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -57,6 +58,34 @@ func (t TasksHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func NewTaskHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		logger.ErrorLogger.Printf("Method: %s is not allowed on /newtask endpoint\n", r.Method)
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+
+	logger.InfoLogger.Printf("Got request on /newtask endpoint\n")
+
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		logger.ErrorLogger.Printf("Couldn't read the body")
+	}
+
+	var tempnewtask task.Task
+
+	err = json.Unmarshal(body, &tempnewtask)
+	if err != nil {
+		http.Error(w, "Invalid JSON format", http.StatusBadRequest)
+		return
+	}
+	IMD.tasks = append(IMD.tasks, task.New(tempnewtask.Title, tempnewtask.Desc))
+
+	logger.InfoLogger.Printf("New task created.\nID: %s\nTitle: %s\nDesc: %s", IMD.tasks[len(IMD.tasks)-1].ID, IMD.tasks[len(IMD.tasks)-1].Title, IMD.tasks[len(IMD.tasks)-1].Desc)
+	w.Write([]byte(fmt.Sprintf("New task created.\nID: %s\nTitle: %s\nDesc: %s", IMD.tasks[len(IMD.tasks)-1].ID, IMD.tasks[len(IMD.tasks)-1].Title, IMD.tasks[len(IMD.tasks)-1].Desc)))
+
+}
+
 func homeHandler(w http.ResponseWriter, r *http.Request) {
 	logger.InfoLogger.Println("Got request on / endpoint")
 	_, err := io.WriteString(w, "Welcome to your dashboard\n")
@@ -78,6 +107,7 @@ func Listen(version string) {
 
 	webMux := http.NewServeMux()
 	webMux.HandleFunc("/", homeHandler)
+	webMux.HandleFunc("/newtask", NewTaskHandler)
 	webMux.Handle("/tasks", tasksHandler)
 	webMux.HandleFunc("/favicon.ico", faviconHandler)
 
