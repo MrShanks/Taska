@@ -58,32 +58,32 @@ func (t TasksHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func NewTaskHandler(w http.ResponseWriter, r *http.Request) {
+func newTaskHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
-		logger.ErrorLogger.Printf("Method: %s is not allowed on /newtask endpoint\n", r.Method)
+		logger.ErrorLogger.Printf("Method: %s is not allowed on /new endpoint\n", r.Method)
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		return
 	}
 
-	logger.InfoLogger.Printf("Got request on /newtask endpoint\n")
+	logger.InfoLogger.Printf("Got request on /new endpoint\n")
 
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		logger.ErrorLogger.Printf("Couldn't read the body")
+		logger.ErrorLogger.Printf("Couldn't read the body. Error type: %s", err)
 	}
+	defer r.Body.Close()
 
-	var tempnewtask task.Task
+	var tempNewTask task.Task
 
-	err = json.Unmarshal(body, &tempnewtask)
+	err = json.Unmarshal(body, &tempNewTask)
 	if err != nil {
 		http.Error(w, "Invalid JSON format", http.StatusBadRequest)
 		return
 	}
-	IMD.tasks = append(IMD.tasks, task.New(tempnewtask.Title, tempnewtask.Desc))
+	IMD.tasks = append(IMD.tasks, task.New(tempNewTask.Title, tempNewTask.Desc))
 
-	logger.InfoLogger.Printf("New task created.\nID: %s\nTitle: %s\nDesc: %s", IMD.tasks[len(IMD.tasks)-1].ID, IMD.tasks[len(IMD.tasks)-1].Title, IMD.tasks[len(IMD.tasks)-1].Desc)
+	logger.InfoLogger.Printf("New task created.\nID: %s", IMD.tasks[len(IMD.tasks)-1].ID)
 	w.Write([]byte(fmt.Sprintf("New task created.\nID: %s\nTitle: %s\nDesc: %s", IMD.tasks[len(IMD.tasks)-1].ID, IMD.tasks[len(IMD.tasks)-1].Title, IMD.tasks[len(IMD.tasks)-1].Desc)))
-
 }
 
 func homeHandler(w http.ResponseWriter, r *http.Request) {
@@ -107,7 +107,7 @@ func Listen(version string) {
 
 	webMux := http.NewServeMux()
 	webMux.HandleFunc("/", homeHandler)
-	webMux.HandleFunc("/newtask", NewTaskHandler)
+	webMux.HandleFunc("/new", newTaskHandler)
 	webMux.Handle("/tasks", tasksHandler)
 	webMux.HandleFunc("/favicon.ico", faviconHandler)
 
