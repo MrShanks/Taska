@@ -8,18 +8,11 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/google/uuid"
+
 	"github.com/MrShanks/Taska/common/logger"
 	"github.com/MrShanks/Taska/common/task"
-	"github.com/google/uuid"
 )
-
-var IMD = inMemoryDatabase{
-	tasks: []*task.Task{
-		task.New("first", "Desc First"),
-		task.New("second", "Desc Second"),
-		task.New("third", "Desc Third"),
-	},
-}
 
 // inMemoryDatabase implements the taskStore interface
 type inMemoryDatabase struct {
@@ -110,6 +103,14 @@ func faviconHandler(w http.ResponseWriter, r *http.Request) {
 
 // Listen initialize the server and waits for requests
 func Listen(version string) {
+	var IMD = inMemoryDatabase{
+		tasks: []*task.Task{
+			task.New("first", "Desc First"),
+			task.New("second", "Desc Second"),
+			task.New("third", "Desc Third"),
+		},
+	}
+
 	webMux := http.NewServeMux()
 	webMux.HandleFunc("/", homeHandler)
 	webMux.HandleFunc("/tasks", GetHandler(&IMD))
