@@ -24,36 +24,33 @@ type inMemoryDatabase struct {
 	tasks []*task.Task
 }
 
-func (md inMemoryDatabase) GetTasks() []*task.Task {
+func (md *inMemoryDatabase) GetTasks() []*task.Task {
 	return md.tasks
 }
 
-// TasksHandler implements the Handler interface it takes a store of type task.TaskStore
-type TasksHandler struct {
-	store task.TaskStore
-}
+func GetHandler(store task.TaskStore) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet {
+			logger.ErrorLogger.Printf("Method: %s is not allowed on /tasks endpoint\n", r.Method)
 
-func (t TasksHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		logger.ErrorLogger.Printf("Method: %s is not allowed on /tasks endpoint\n", r.Method)
+			w.WriteHeader(http.StatusMethodNotAllowed)
+			return
+		}
 
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		return
-	}
+		logger.InfoLogger.Printf("Got request on /tasks endpoint\n")
 
-	logger.InfoLogger.Printf("Got request on /tasks endpoint\n")
+		jsonTasks, err := json.Marshal(store.GetTasks())
+		if err != nil {
+			logger.ErrorLogger.Printf("Couldn't Marshal tasks into json format: %v", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
 
-	jsonTasks, err := json.Marshal(t.store.GetTasks())
-	if err != nil {
-		logger.ErrorLogger.Printf("Couldn't Marshal tasks into json format: %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	_, err = w.Write(jsonTasks)
-	if err != nil {
-		logger.ErrorLogger.Printf("Couldn't write response: %v", err)
+		w.Header().Set("Content-Type", "application/json")
+		_, err = w.Write(jsonTasks)
+		if err != nil {
+			logger.ErrorLogger.Printf("Couldn't write response: %v", err)
+		}
 	}
 }
 
@@ -74,11 +71,10 @@ func faviconHandler(w http.ResponseWriter, r *http.Request) {
 
 // Listen initialize the server and waits for requests
 func Listen(version string) {
-	tasksHandler := TasksHandler{store: IMD}
 
 	webMux := http.NewServeMux()
 	webMux.HandleFunc("/", homeHandler)
-	webMux.Handle("/tasks", tasksHandler)
+	webMux.HandleFunc("/tasks", GetHandler(&IMD))
 	webMux.HandleFunc("/favicon.ico", faviconHandler)
 
 	httpServer := &http.Server{
