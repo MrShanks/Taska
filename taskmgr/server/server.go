@@ -3,12 +3,14 @@ package server
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"os"
 
 	"github.com/MrShanks/Taska/common/logger"
 	"github.com/MrShanks/Taska/common/task"
+	"github.com/google/uuid"
 )
 
 var IMD = inMemoryDatabase{
@@ -26,6 +28,10 @@ type inMemoryDatabase struct {
 
 func (md *inMemoryDatabase) GetTasks() []*task.Task {
 	return md.tasks
+}
+
+func (md *inMemoryDatabase) New(task *task.Task) {
+	md.tasks = append(md.tasks, task)
 }
 
 func GetHandler(store task.TaskStore) http.HandlerFunc {
@@ -54,6 +60,39 @@ func GetHandler(store task.TaskStore) http.HandlerFunc {
 	}
 }
 
+func NewTaskHandler(store task.TaskStore) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			logger.ErrorLogger.Printf("Method: %s is not allowed on /new endpoint\n", r.Method)
+			w.WriteHeader(http.StatusMethodNotAllowed)
+			return
+		}
+
+		logger.InfoLogger.Printf("Got request on /new endpoint\n")
+
+		body, err := io.ReadAll(r.Body)
+		if err != nil {
+			logger.ErrorLogger.Printf("Couldn't read the body. Error type: %s", err)
+		}
+		defer r.Body.Close()
+
+		newTask := task.Task{
+			ID: uuid.New(),
+		}
+
+		err = json.Unmarshal(body, &newTask)
+		if err != nil {
+			http.Error(w, "Invalid JSON format", http.StatusBadRequest)
+			return
+		}
+		store.New(&newTask)
+
+		logger.InfoLogger.Printf("New task created.\nID: %s", newTask.ID)
+		w.WriteHeader(http.StatusCreated)
+		w.Write([]byte(fmt.Sprintf("New task created.\nID: %s\nTitle: %s\nDesc: %s", newTask.ID, newTask.Title, newTask.Desc)))
+	}
+}
+
 func homeHandler(w http.ResponseWriter, r *http.Request) {
 	logger.InfoLogger.Println("Got request on / endpoint")
 	_, err := io.WriteString(w, "Welcome to your dashboard\n")
@@ -71,10 +110,10 @@ func faviconHandler(w http.ResponseWriter, r *http.Request) {
 
 // Listen initialize the server and waits for requests
 func Listen(version string) {
-
 	webMux := http.NewServeMux()
 	webMux.HandleFunc("/", homeHandler)
 	webMux.HandleFunc("/tasks", GetHandler(&IMD))
+	webMux.HandleFunc("/new", NewTaskHandler(&IMD))
 	webMux.HandleFunc("/favicon.ico", faviconHandler)
 
 	httpServer := &http.Server{
