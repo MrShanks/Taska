@@ -82,7 +82,10 @@ func NewTaskHandler(store task.TaskStore) http.HandlerFunc {
 
 		logger.InfoLogger.Printf("New task created.\nID: %s", newTask.ID)
 		w.WriteHeader(http.StatusCreated)
-		w.Write([]byte(fmt.Sprintf("New task created.\nID: %s\nTitle: %s\nDesc: %s", newTask.ID, newTask.Title, newTask.Desc)))
+		_, err = w.Write([]byte(fmt.Sprintf("New task created.\nID: %s\nTitle: %s\nDesc: %s", newTask.ID, newTask.Title, newTask.Desc)))
+		if err != nil {
+			logger.ErrorLogger.Printf("couldn't write response")
+		}
 	}
 }
 
@@ -103,7 +106,7 @@ func faviconHandler(w http.ResponseWriter, r *http.Request) {
 
 // Listen initialize the server and waits for requests
 func Listen(version string) {
-	var IMD = inMemoryDatabase{
+	IMD := inMemoryDatabase{
 		tasks: []*task.Task{
 			task.New("first", "Desc First"),
 			task.New("second", "Desc Second"),
