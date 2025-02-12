@@ -7,19 +7,27 @@ import (
 	"testing"
 
 	"github.com/MrShanks/Taska/common/logger"
+	"github.com/MrShanks/Taska/common/task"
 )
 
 func TestGetTasksHandler(t *testing.T) {
 	logger.InitLogger()
+
+	IMD := inMemoryDatabase{
+		tasks: []*task.Task{
+			task.New("first", "Desc First"),
+			task.New("second", "Desc Second"),
+			task.New("third", "Desc Third"),
+		},
+	}
+
 	t.Run("returns all tasks", func(t *testing.T) {
+		handler := GetHandler(&IMD)
+
 		request, _ := http.NewRequest(http.MethodGet, "/tasks", nil)
 		response := httptest.NewRecorder()
 
-		taskHandler := TasksHandler{
-			store: IMD,
-		}
-
-		taskHandler.ServeHTTP(response, request)
+		handler(response, request)
 
 		got := response.Body.String()
 		wantBytes, _ := json.Marshal(IMD.GetTasks())
@@ -29,5 +37,4 @@ func TestGetTasksHandler(t *testing.T) {
 			t.Errorf("got %q, want %q", got, want)
 		}
 	})
-
 }
