@@ -1,26 +1,17 @@
-name: Lint Go Code
+name: Lint Code Base
 
 on:
   pull_request:
-
 jobs:
-  golangci:
-    name: lint
+  run-lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Go
-        uses: actions/setup-go@v5
+      - name: Checkout code
+        uses: actions/checkout@v4
         with:
-          go-version: stable
+          fetch-depth: 0
 
-      - name: Install dependencies
-        run: go mod tidy
-
-      - name: Install golangci-lint
-        run: |
-          curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.57.2
-
-      - name: Run golangci-lint
-        run: golangci-lint run -v
+      - name: Lint Code Base
+        uses: github/super-linter@v4
+        env:
+          VALIDATE_ALL_CODEBASE: true
