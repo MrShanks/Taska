@@ -1,27 +1,23 @@
-name: Go Linter
+name: Lint Go Code
 
 on:
   pull_request:
 
 jobs:
-  lint:
-    name: Run Go Linter
+  golangci:
+    name: lint
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: stable
+          go-version: file:go.mod  # Reads Go version from go.mod file
 
       - name: Install golangci-lint
         run: |
-          curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.55.2
-          echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
+          curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.57.2
 
       - name: Run golangci-lint
-        run: |
-          golangci-lint run --timeout=5m
+        run: golangci-lint run
