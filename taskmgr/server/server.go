@@ -107,7 +107,7 @@ func faviconHandler(w http.ResponseWriter, r *http.Request) {
 
 // Listen initialize the server and waits for requests
 func Listen(version string) {
-	var IMD = inMemoryDatabase{
+	IMD := inMemoryDatabase{
 		tasks: []*task.Task{
 			task.New("first", "Desc First"),
 			task.New("second", "Desc Second"),

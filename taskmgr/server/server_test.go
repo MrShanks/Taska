@@ -14,7 +14,7 @@ import (
 func TestGetTasksHandler(t *testing.T) {
 	logger.InitLogger()
 
-	var IMD = inMemoryDatabase{
+	IMD := inMemoryDatabase{
 		tasks: []*task.Task{
 			task.New("first", "Desc First"),
 			task.New("second", "Desc Second"),
@@ -38,5 +38,4 @@ func TestGetTasksHandler(t *testing.T) {
 			t.Errorf("got %q, want %q", got, want)
 		}
 	})
-
 }
