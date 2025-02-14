@@ -15,6 +15,11 @@ type Config struct {
 	} `yaml:"app"`
 }
 
+// ReadVersionFromConfig is a backup way for the program to read the
+// version from a config.yaml file.
+// The version is passed and backed in at building time but if you
+// run the program with go run main.go this function takes care of
+// reading the version we are currently in
 func ReadVersionFromConfig() string {
 	file, err := os.ReadFile("config.yaml")
 	if err != nil {
