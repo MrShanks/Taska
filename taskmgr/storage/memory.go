@@ -4,7 +4,7 @@ import (
 	"github.com/MrShanks/Taska/common/task"
 )
 
-// inMemoryDatabase implements the taskStore interface
+// InMemoryDatabase implements the taskStore interface
 type InMemoryDatabase struct {
 	Tasks []*task.Task
 }

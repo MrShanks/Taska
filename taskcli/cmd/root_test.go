@@ -8,17 +8,17 @@ import (
 func TestRootCmd(t *testing.T) {
 	t.Run("execution of taskcli should return the default message", func(t *testing.T) {
 
-		//Arrange
+		// Arrange
 		var capture bytes.Buffer
 		rootCmd.SetOut(&capture)
 
-		//Act
+		// Act
 		err := rootCmd.Execute()
 		if err != nil {
 			t.Fatalf("rootCmd.Execute() error = %v, want nil", err)
 		}
 
-		//Assert
+		// Assert
 		expected := `taskcli is your CLI best friend`
 		output := capture.String()
 
