@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -24,7 +25,7 @@ func TestGetTasksHandler(t *testing.T) {
 	t.Run("returns all tasks", func(t *testing.T) {
 		handler := GetHandler(&IMD)
 
-		request, _ := http.NewRequest(http.MethodGet, "/tasks", nil)
+		request, _ := http.NewRequestWithContext(context.Background(), http.MethodGet, "/tasks", nil)
 		response := httptest.NewRecorder()
 
 		handler(response, request)

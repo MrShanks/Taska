@@ -1,0 +1,31 @@
+run:
+  timeout: 5m
+  modules-download-mode: readonly
+
+linters:
+  disable-all: false
+  enable:
+    - errcheck
+    - gosimple
+    - govet
+    - staticcheck
+    - typecheck
+    - unused
+    - ineffassign
+    - gosec
+    - gocritic
+    - goconst
+    - bodyclose
+    - noctx
+    - prealloc
+    - wastedassign
+    - thelper
+    - revive
+linters-settings:
+  revive:
+    rules:
+    - name: unexported-naming
+      disabled: true
+    - name: exported
+      severity: warning
+      disabled: false

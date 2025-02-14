@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/google/uuid"
 
@@ -27,7 +28,7 @@ func (md *inMemoryDatabase) New(task *task.Task) {
 	md.tasks = append(md.tasks, task)
 }
 
-func GetHandler(store task.TaskStore) http.HandlerFunc {
+func GetHandler(store task.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {
 			logger.ErrorLogger.Printf("Method: %s is not allowed on /tasks endpoint\n", r.Method)
@@ -53,7 +54,7 @@ func GetHandler(store task.TaskStore) http.HandlerFunc {
 	}
 }
 
-func NewTaskHandler(store task.TaskStore) http.HandlerFunc {
+func NewTaskHandler(store task.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			logger.ErrorLogger.Printf("Method: %s is not allowed on /new endpoint\n", r.Method)
@@ -82,7 +83,10 @@ func NewTaskHandler(store task.TaskStore) http.HandlerFunc {
 
 		logger.InfoLogger.Printf("New task created.\nID: %s", newTask.ID)
 		w.WriteHeader(http.StatusCreated)
-		w.Write([]byte(fmt.Sprintf("New task created.\nID: %s\nTitle: %s\nDesc: %s", newTask.ID, newTask.Title, newTask.Desc)))
+		_, err = w.Write([]byte(fmt.Sprintf("New task created.\nID: %s\nTitle: %s\nDesc: %s", newTask.ID, newTask.Title, newTask.Desc)))
+		if err != nil {
+			logger.ErrorLogger.Printf("couldn't write response")
+		}
 	}
 }
 
@@ -118,8 +122,12 @@ func Listen(version string) {
 	webMux.HandleFunc("/favicon.ico", faviconHandler)
 
 	httpServer := &http.Server{
-		Addr:    ":8080",
-		Handler: webMux,
+		Addr:              ":8080",
+		Handler:           webMux,
+		ReadHeaderTimeout: 5 * time.Second,  // Time to read request headers
+		ReadTimeout:       10 * time.Second, // Time to read entire request
+		WriteTimeout:      15 * time.Second, // Time to write response
+		IdleTimeout:       30 * time.Second, // Time to keep idle connections
 	}
 
 	logger.InfoLogger.Printf("Server version: %s listening at %s", version, httpServer.Addr)
