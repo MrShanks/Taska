@@ -7,7 +7,6 @@ import (
 
 func TestRootCmd(t *testing.T) {
 	t.Run("execution of taskcli should return the default message", func(t *testing.T) {
-
 		// Arrange
 		var capture bytes.Buffer
 		rootCmd.SetOut(&capture)
