@@ -6,7 +6,7 @@ import (
 )
 
 func main() {
-	cfg := utils.LoadConfig("config.yaml")
+	cfg := utils.LoadConfig()
 
 	server.Listen(cfg)
 }
