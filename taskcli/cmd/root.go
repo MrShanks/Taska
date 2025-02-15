@@ -29,4 +29,6 @@ func Execute() {
 	}
 }
 
-func init() {}
+func init() {
+	// Here you can add flags and Persistent Flags for the root cmd
+}
