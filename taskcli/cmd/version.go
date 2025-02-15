@@ -7,7 +7,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var version = "undefined"
+var version = "null"
 
 var versionCmd = &cobra.Command{
 	Use:   "version",
@@ -15,7 +15,7 @@ var versionCmd = &cobra.Command{
 	Long:  `This command reads the version from a config.yaml file`,
 
 	Run: func(cmd *cobra.Command, args []string) {
-		if version == "undefined" {
+		if version == "null" {
 			version = utils.LoadConfig().Version
 		}
 		fmt.Printf("version: %s\n", version)
