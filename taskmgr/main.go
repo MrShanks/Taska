@@ -5,12 +5,8 @@ import (
 	"github.com/MrShanks/Taska/utils"
 )
 
-var version = "undefined"
-
 func main() {
-	if version == "undefined" {
-		version = utils.ReadVersionFromConfig()
-	}
+	cfg := utils.LoadConfig()
 
-	server.Listen(version)
+	server.Listen(cfg)
 }

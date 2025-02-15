@@ -4,8 +4,11 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"net"
 	"net/http"
+	"net/url"
 
+	"github.com/MrShanks/Taska/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -15,9 +18,16 @@ var getCmd = &cobra.Command{
 	Long:  "get all active tasks store on the servere",
 
 	Run: func(cmd *cobra.Command, args []string) {
-		var apiClient http.Client
+		apiClient := &http.Client{}
+		cfg := utils.LoadConfig()
 
-		response, err := apiClient.Get("http://localhost:8080/tasks")
+		serverURL := url.URL{
+			Scheme: "http",
+			Host:   net.JoinHostPort(cfg.Spec.Host, cfg.Spec.Port),
+			Path:   "/tasks",
+		}
+
+		response, err := apiClient.Get(serverURL.String())
 		if err != nil {
 			log.Printf("Couldn't get a response from the server: %v", err)
 		}
