@@ -19,7 +19,7 @@ var getCmd = &cobra.Command{
 
 	Run: func(cmd *cobra.Command, args []string) {
 		apiClient := &http.Client{}
-		cfg := utils.LoadConfig()
+		cfg := utils.LoadConfig("config.yaml")
 
 		serverURL := url.URL{
 			Scheme: "http",

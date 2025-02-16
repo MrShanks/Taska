@@ -11,3 +11,7 @@ run:
 
 lint:
 	golangci-lint run --config=../.golangci.yml
+
+coverage:
+	go test ./... -coverprofile=coverage.out
+	go tool cover -html=coverage.out

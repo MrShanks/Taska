@@ -17,8 +17,8 @@ type Config struct {
 	} `yaml:"spec"`
 }
 
-func LoadConfig() *Config {
-	file, err := os.ReadFile("config.yaml")
+func LoadConfig(path string) *Config {
+	file, err := os.ReadFile(path)
 	if err != nil {
 		log.Printf("Failed to open the config file: %v", err)
 		os.Exit(1)
