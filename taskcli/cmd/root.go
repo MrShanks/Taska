@@ -34,6 +34,8 @@ Example usage:
 }
 
 func Execute() {
+	initClient()
+
 	err := rootCmd.Execute()
 	if err != nil {
 		os.Exit(1)
