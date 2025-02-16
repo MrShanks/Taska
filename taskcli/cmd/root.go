@@ -1,9 +1,19 @@
 package cmd
 
 import (
+	"net"
+	"net/http"
+	"net/url"
 	"os"
 
+	"github.com/MrShanks/Taska/utils"
 	"github.com/spf13/cobra"
+)
+
+var (
+	httpClient *http.Client
+	config     *utils.Config
+	serverURL  url.URL
 )
 
 // rootCmd represents the base command when called without any subcommands
