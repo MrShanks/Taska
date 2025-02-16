@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"github.com/MrShanks/Taska/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -14,7 +13,7 @@ var versionCmd = &cobra.Command{
 
 	Run: func(cmd *cobra.Command, args []string) {
 		if version == "null" {
-			version = utils.LoadConfig("config.yaml").Version
+			version = config.Version
 		}
 		cmd.Printf("version: %s", version)
 	},
