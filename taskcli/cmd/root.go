@@ -34,13 +34,15 @@ Example usage:
 }
 
 func Execute() {
+	initClient()
+
 	err := rootCmd.Execute()
 	if err != nil {
 		os.Exit(1)
 	}
 }
 
-func init() {
+func initClient() {
 	config = utils.LoadConfig("config.yaml")
 
 	httpClient = &http.Client{
@@ -51,4 +53,9 @@ func init() {
 		Scheme: "http",
 		Host:   net.JoinHostPort(config.Spec.Host, config.Spec.Port),
 	}
+
+}
+
+func init() {
+	// add flags here
 }
