@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"time"
 
 	"github.com/MrShanks/Taska/utils"
 	"github.com/spf13/cobra"
@@ -41,7 +42,11 @@ func Execute() {
 
 func init() {
 	config = utils.LoadConfig("config.yaml")
-	httpClient = &http.Client{}
+
+	httpClient = &http.Client{
+		Timeout: 10 * time.Second,
+	}
+
 	serverURL = url.URL{
 		Scheme: "http",
 		Host:   net.JoinHostPort(config.Spec.Host, config.Spec.Port),

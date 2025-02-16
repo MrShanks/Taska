@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"log"
@@ -15,15 +16,20 @@ var getCmd = &cobra.Command{
 	Long:  "get all active tasks store on the servere",
 
 	Run: func(cmd *cobra.Command, args []string) {
-		cmd.Printf("%s", fetchTasks(httpClient, "/tasks"))
+		ctx := context.Background()
+		cmd.Printf("%s", fetchTasks(httpClient, ctx, "/tasks"))
 	},
 }
 
-func fetchTasks(client *http.Client, endpoint string) string {
-
+func fetchTasks(client *http.Client, ctx context.Context, endpoint string) string {
 	serverURL.Path = endpoint
 
-	response, err := client.Get(serverURL.String())
+	request, err := http.NewRequestWithContext(ctx, "GET", serverURL.String(), nil)
+	if err != nil {
+		log.Printf("Couldn't create request: %v", err)
+	}
+
+	response, err := client.Do(request)
 	if err != nil {
 		log.Printf("Couldn't get a response from the server: %v", err)
 	}
