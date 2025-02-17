@@ -21,7 +21,10 @@ func TestFetchTasks(t *testing.T) {
 
 		mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(jsonTask))
+			_, err := w.Write([]byte(jsonTask))
+			if err != nil {
+				t.Errorf("couldn't write the response")
+			}
 		}))
 		defer mockServer.Close()
 
