@@ -19,11 +19,11 @@ var getCmd = &cobra.Command{
 		ctx := context.Background()
 		httpClient := NewApiClient()
 
-		cmd.Printf("%s", fetchTasks(httpClient, ctx, "/tasks"))
+		cmd.Printf("%s", FetchTasks(httpClient, ctx, "/tasks"))
 	},
 }
 
-func fetchTasks(taskcli *Tasckli, ctx context.Context, endpoint string) string {
+func FetchTasks(taskcli *Tasckli, ctx context.Context, endpoint string) string {
 	taskcli.ServerURL.Path = endpoint
 
 	request, err := http.NewRequestWithContext(ctx, "GET", taskcli.ServerURL.String(), nil)
@@ -42,7 +42,7 @@ func fetchTasks(taskcli *Tasckli, ctx context.Context, endpoint string) string {
 	}
 	defer response.Body.Close()
 
-	return fmt.Sprintf("%v\n", string(bodyBytes))
+	return fmt.Sprintf("%v", string(bodyBytes))
 }
 
 func init() {
