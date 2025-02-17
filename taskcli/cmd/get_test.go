@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
-	"reflect"
 	"testing"
 
 	"github.com/MrShanks/Taska/common/task"
@@ -37,8 +36,10 @@ func TestFetchTasks(t *testing.T) {
 		}
 
 		got := FetchTasks(mockClient, context.Background(), "/tasks")
-		if !reflect.DeepEqual(got, task) {
-			t.Errorf("got %v, want %v", got, task)
+		want := string(jsonTask)
+
+		if got != want {
+			t.Errorf("got %v, want %v", got, want)
 		}
 
 	})
