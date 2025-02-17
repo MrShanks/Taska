@@ -1,20 +1,9 @@
 package cmd
 
 import (
-	"net"
-	"net/http"
-	"net/url"
 	"os"
-	"time"
 
-	"github.com/MrShanks/Taska/utils"
 	"github.com/spf13/cobra"
-)
-
-var (
-	httpClient *http.Client
-	config     *utils.Config
-	serverURL  url.URL
 )
 
 // rootCmd represents the base command when called without any subcommands
@@ -34,8 +23,6 @@ Example usage:
 }
 
 func Execute() {
-	initClient()
-
 	err := rootCmd.Execute()
 	if err != nil {
 		os.Exit(1)
