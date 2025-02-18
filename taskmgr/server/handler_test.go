@@ -26,7 +26,10 @@ func TestGetTasksHandler(t *testing.T) {
 		// Act
 		handler := GetAllTasksHandler(&IMD)
 
-		request, _ := http.NewRequestWithContext(context.Background(), http.MethodGet, "/tasks", nil)
+		request, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "/tasks", nil)
+		if err != nil {
+			t.Errorf("couldn't create request")
+		}
 		response := httptest.NewRecorder()
 
 		handler(response, request)
@@ -40,4 +43,38 @@ func TestGetTasksHandler(t *testing.T) {
 			t.Errorf("got %q, want %q", got, want)
 		}
 	})
+}
+
+func TestGeneralHandler(t *testing.T) {
+
+	tests := []struct {
+		desc     string
+		want     int
+		endpoint string
+		handler  http.HandlerFunc
+	}{
+		{"GET request on / returns status 200", 200, "/", homeHandler},
+		{"GET request on /favicon.ico returns status 204", 204, "/favicon.ico", faviconHandler},
+	}
+
+	for _, test := range tests {
+		t.Run(test.desc, func(t *testing.T) {
+
+			request, err := http.NewRequestWithContext(context.Background(), "GET", test.endpoint, nil)
+			if err != nil {
+				t.Errorf("couldn't create request")
+			}
+
+			response := httptest.NewRecorder()
+
+			test.handler(response, request)
+
+			got := response.Result().StatusCode
+
+			if got != test.want {
+				t.Errorf("got %v, want %v", got, test.want)
+			}
+		})
+	}
+
 }
