@@ -13,7 +13,7 @@ import (
 var getCmd = &cobra.Command{
 	Use:   "get",
 	Short: "get all active tasks",
-	Long:  "get all active tasks store on the servere",
+	Long:  "get all active tasks store on the server",
 
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx := context.Background()
