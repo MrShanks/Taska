@@ -1,24 +1,24 @@
 package cmd
 
 import (
-	"fmt"
-
-	"github.com/MrShanks/Taska/utils"
 	"github.com/spf13/cobra"
 )
 
-var version = "undefined"
+var version = "null"
 
 var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Print taskcli version",
-	Long:  `This command reads the version from ~/.Taska.yaml config file`,
+	Long:  `This command reads the version from a config.yaml file`,
 
 	Run: func(cmd *cobra.Command, args []string) {
-		if version == "undefined" {
-			version = utils.ReadVersionFromConfig()
+		apiClient := NewApiClient()
+
+		if version == "null" {
+			version = apiClient.Cfg.Version
 		}
-		fmt.Printf("version: %s\n", version)
+
+		cmd.Printf("version: %s", version)
 	},
 }
 
