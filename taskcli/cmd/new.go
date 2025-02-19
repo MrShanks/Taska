@@ -58,7 +58,10 @@ func newTask(taskcli *Tasckli, ctx context.Context, endpoint, title, desc string
 func init() {
 	newCmd.PersistentFlags().StringP("title", "t", "Untitled task", "Title of the new fancy task")
 	newCmd.PersistentFlags().StringP("desc", "d", "Default description", "Description of the new task")
-	newCmd.MarkPersistentFlagRequired("title")
+	err := newCmd.MarkPersistentFlagRequired("title")
+	if err != nil {
+		log.Printf("Error marking persisten flag required: %v", err)
+	}
 
 	rootCmd.AddCommand(newCmd)
 }
