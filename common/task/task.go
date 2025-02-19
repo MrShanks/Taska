@@ -17,8 +17,3 @@ func New(title, desc string) *Task {
 		Desc:  desc,
 	}
 }
-
-type TaskStore interface {
-	GetTasks() []*Task
-	New(*Task)
-}

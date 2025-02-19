@@ -8,25 +8,27 @@ import (
 )
 
 type Config struct {
-	App struct {
-		Name        string `yaml:"name"`
-		Description string `yaml:"description"`
-		Version     string `yaml:"version"`
-	} `yaml:"app"`
+	Name        string `yaml:"name"`
+	Description string `yaml:"description"`
+	Version     string `yaml:"version"`
+	Spec        struct {
+		Host string `yaml:"host"`
+		Port string `yaml:"port"`
+	} `yaml:"spec"`
 }
 
-func ReadVersionFromConfig() string {
-	file, err := os.ReadFile("config.yaml")
+func LoadConfig(path string) *Config {
+	file, err := os.ReadFile(path)
 	if err != nil {
 		log.Printf("Failed to open the config file: %v", err)
 		os.Exit(1)
 	}
 
-	var cfg Config
+	cfg := &Config{}
 	if err := yaml.Unmarshal(file, &cfg); err != nil {
 		log.Printf("Failed to parse the config file: %v", err)
 		os.Exit(1)
 	}
 
-	return cfg.App.Version
+	return cfg
 }
