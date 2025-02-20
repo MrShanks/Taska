@@ -16,7 +16,7 @@ import (
 func TestNewTaskHandler(t *testing.T) {
 	t.Run("Create new task and check if it's there", func(t *testing.T) {
 
-		//Arrange
+		// Arrange
 		mockDatabase := storage.InMemoryDatabase{
 			Tasks: []*task.Task{},
 		}
@@ -34,7 +34,7 @@ func TestNewTaskHandler(t *testing.T) {
 			return
 		}
 
-		//Act
+		// Act
 		handler := NewTaskHandler(&mockDatabase)
 
 		request, _ := http.NewRequestWithContext(context.Background(), http.MethodPost, "/new", bytes.NewBuffer(body))
@@ -42,7 +42,7 @@ func TestNewTaskHandler(t *testing.T) {
 
 		handler(response, request)
 
-		//Assert
+		// Assert
 		want := task.New(newDummyTask.Title, newDummyTask.Desc)
 		got := mockDatabase.GetTasks()
 		if len(got) == 0 {
