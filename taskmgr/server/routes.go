@@ -7,7 +7,6 @@ import (
 )
 
 func InitMuxWithRoutes(store task.Store) *http.ServeMux {
-
 	webMux := http.NewServeMux()
 	webMux.HandleFunc("/", homeHandler)
 	webMux.HandleFunc("/favicon.ico", faviconHandler)

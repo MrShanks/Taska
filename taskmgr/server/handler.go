@@ -70,7 +70,9 @@ func NewTaskHandler(store task.Store) http.HandlerFunc {
 
 func homeHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("Got request on / endpoint")
-	_, err := io.WriteString(w, "Welcome to your dashboard\n")
+
+	w.WriteHeader(http.StatusOK)
+	_, err := w.Write([]byte("Welcome to your dashboard"))
 	if err != nil {
 		log.Printf("Couldn't write response: %v", err)
 	}
