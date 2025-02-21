@@ -14,6 +14,7 @@ func InitMuxWithRoutes(store task.Store) *http.ServeMux {
 	// Tasks related Routes
 	webMux.HandleFunc("/tasks", GetAllTasksHandler(store))
 	webMux.HandleFunc("/new", NewTaskHandler(store))
+	webMux.HandleFunc("/delete/{task_id}", DeleteTaskHandler(store))
 
 	return webMux
 }

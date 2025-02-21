@@ -8,6 +8,8 @@ import (
 	"os"
 	"time"
 
+	"github.com/google/uuid"
+
 	"github.com/MrShanks/Taska/common/task"
 	"github.com/MrShanks/Taska/taskmgr/storage"
 	"github.com/MrShanks/Taska/utils"
@@ -26,12 +28,15 @@ func NewServer(cfg *utils.Config, store task.Store) *http.Server {
 
 // Listen initialize the server and waits for requests
 func Listen(cfg *utils.Config) {
+
+	tasks := map[uuid.UUID]*task.Task{
+		uuid.New(): task.New("first", "Desc First"),
+		uuid.New(): task.New("second", "Desc Second"),
+		uuid.New(): task.New("third", "Desc Third"),
+	}
+
 	IMD := storage.InMemoryDatabase{
-		Tasks: []*task.Task{
-			task.New("first", "Desc First"),
-			task.New("second", "Desc Second"),
-			task.New("third", "Desc Third"),
-		},
+		Tasks: tasks,
 	}
 
 	httpServer := NewServer(cfg, &IMD)
