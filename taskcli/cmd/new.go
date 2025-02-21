@@ -9,8 +9,9 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/MrShanks/Taska/common/task"
 	"github.com/spf13/cobra"
+
+	"github.com/MrShanks/Taska/common/task"
 )
 
 var newCmd = &cobra.Command{
@@ -34,7 +35,7 @@ var newCmd = &cobra.Command{
 	},
 }
 
-func newTask(taskcli *Tasckli, ctx context.Context, endpoint, title, desc string) string {
+func newTask(taskcli *Taskcli, ctx context.Context, endpoint, title, desc string) string {
 	taskcli.ServerURL.Path = endpoint
 
 	jsonTask, err := json.Marshal(task.New(title, desc))

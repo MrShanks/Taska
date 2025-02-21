@@ -23,7 +23,7 @@ var getCmd = &cobra.Command{
 	},
 }
 
-func FetchTasks(taskcli *Tasckli, ctx context.Context, endpoint string) string {
+func FetchTasks(taskcli *Taskcli, ctx context.Context, endpoint string) string {
 	taskcli.ServerURL.Path = endpoint
 
 	request, err := http.NewRequestWithContext(ctx, "GET", taskcli.ServerURL.String(), nil)
