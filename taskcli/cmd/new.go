@@ -15,28 +15,34 @@ import (
 
 var newCmd = &cobra.Command{
 	Use:   "new",
-	Short: "create a new task",
-	Long:  "create a fancy new task. A task name is required, and a description is optional but recommended",
+	Short: "Create a new task",
+	Long:  "Create a fancy new task. A task name is required, and a description is optional but recommended",
 
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx := context.Background()
-		httpClient := NewApiClient()
-		title, _ := cmd.Flags().GetString("title")
-		desc, _ := cmd.Flags().GetString("desc")
+		apiClient := NewApiClient()
+		title, err := cmd.Flags().GetString("title")
+		if err != nil {
+			log.Printf("Couldn't get the passed value: title")
+		}
+		desc, err := cmd.Flags().GetString("desc")
+		if err != nil {
+			log.Printf("Couldn't get the passed value: desc")
+		}
 
-		cmd.Printf("%s", newTask(httpClient, ctx, "/new", title, desc))
+		cmd.Printf("%s", newTask(apiClient, ctx, "/new", title, desc))
 	},
 }
 
 func newTask(taskcli *Tasckli, ctx context.Context, endpoint, title, desc string) string {
 	taskcli.ServerURL.Path = endpoint
 
-	bytesNewTask, err := json.Marshal(task.New(title, desc))
+	jsonTask, err := json.Marshal(task.New(title, desc))
 	if err != nil {
-		log.Printf("Couldn't marshal received task: %v", err)
+		log.Printf("Couldn't marshal task, error: %v", err)
 	}
 
-	request, err := http.NewRequestWithContext(ctx, "POST", taskcli.ServerURL.String(), bytes.NewReader(bytesNewTask))
+	request, err := http.NewRequestWithContext(ctx, "POST", taskcli.ServerURL.String(), bytes.NewReader(jsonTask))
 	if err != nil {
 		log.Printf("Couldn't create request: %v", err)
 	}
@@ -58,6 +64,7 @@ func newTask(taskcli *Tasckli, ctx context.Context, endpoint, title, desc string
 func init() {
 	newCmd.PersistentFlags().StringP("title", "t", "Untitled task", "Title of the new fancy task")
 	newCmd.PersistentFlags().StringP("desc", "d", "Default description", "Description of the new task")
+
 	err := newCmd.MarkPersistentFlagRequired("title")
 	if err != nil {
 		log.Printf("Error marking persisten flag required: %v", err)
