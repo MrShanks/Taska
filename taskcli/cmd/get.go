@@ -17,9 +17,9 @@ var getCmd = &cobra.Command{
 
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx := context.Background()
-		httpClient := NewApiClient()
+		apiClient := NewApiClient()
 
-		cmd.Printf("%s", FetchTasks(httpClient, ctx, "/tasks"))
+		cmd.Printf("%s", FetchTasks(apiClient, ctx, "/tasks"))
 	},
 }
 
