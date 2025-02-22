@@ -13,17 +13,17 @@ import (
 var getCmd = &cobra.Command{
 	Use:   "get",
 	Short: "get all active tasks",
-	Long:  "get all active tasks store on the servere",
+	Long:  "get all active tasks store on the server",
 
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx := context.Background()
-		httpClient := NewApiClient()
+		apiClient := NewApiClient()
 
-		cmd.Printf("%s", fetchTasks(httpClient, ctx, "/tasks"))
+		cmd.Printf("%s", FetchTasks(apiClient, ctx, "/tasks"))
 	},
 }
 
-func fetchTasks(taskcli *Tasckli, ctx context.Context, endpoint string) string {
+func FetchTasks(taskcli *Tasckli, ctx context.Context, endpoint string) string {
 	taskcli.ServerURL.Path = endpoint
 
 	request, err := http.NewRequestWithContext(ctx, "GET", taskcli.ServerURL.String(), nil)
@@ -42,7 +42,7 @@ func fetchTasks(taskcli *Tasckli, ctx context.Context, endpoint string) string {
 	}
 	defer response.Body.Close()
 
-	return fmt.Sprintf("%v\n", string(bodyBytes))
+	return fmt.Sprintf("%v", string(bodyBytes))
 }
 
 func init() {
