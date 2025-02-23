@@ -39,6 +39,7 @@ func delTask(taskcli *Taskcli, ctx context.Context, endpoint string) string {
 	if err != nil {
 		return fmt.Sprintf("Couldn't get a response from the server: %v", err)
 	}
+	defer response.Body.Close()
 
 	if response.StatusCode == http.StatusNotFound {
 		return "Task not found"

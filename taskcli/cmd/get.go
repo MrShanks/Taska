@@ -36,10 +36,10 @@ func FetchTasks(taskcli *Taskcli, ctx context.Context, endpoint string) string {
 	}
 
 	bodyBytes, err := io.ReadAll(response.Body)
-	defer response.Body.Close()
 	if err != nil {
 		return fmt.Sprintf("Couldn't read response body: %v", err)
 	}
+	defer response.Body.Close()
 
 	return fmt.Sprintf("%v", string(bodyBytes))
 }
