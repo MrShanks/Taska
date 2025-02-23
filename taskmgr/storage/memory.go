@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/google/uuid"
@@ -23,13 +24,13 @@ func (imd *InMemoryDatabase) New(task *task.Task) uuid.UUID {
 	return task.ID
 }
 
-func (imd *InMemoryDatabase) Delete(id string) {
+func (imd *InMemoryDatabase) Delete(id string) error {
 	UUID := uuid.MustParse(id)
 	if _, ok := imd.Tasks[UUID]; !ok {
-		log.Printf("Couldn't find a task with that ID: %v", UUID)
-		return
+		return fmt.Errorf("task with ID: %v not found", UUID)
 	}
 
 	delete(imd.Tasks, UUID)
 	log.Printf("Task with ID: %v has been deleted", UUID)
+	return nil
 }

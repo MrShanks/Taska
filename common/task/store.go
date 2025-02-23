@@ -5,5 +5,5 @@ import "github.com/google/uuid"
 type Store interface {
 	GetTasks() map[uuid.UUID]*Task
 	New(*Task) uuid.UUID
-	Delete(id string)
+	Delete(id string) error
 }

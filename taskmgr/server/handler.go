@@ -77,7 +77,13 @@ func DeleteTaskHandler(store task.Store) http.HandlerFunc {
 		log.Printf("Got request on /delete endpoint\n")
 
 		taskID := strings.Split(r.URL.Path, "/")[2]
-		store.Delete(taskID)
+
+		err := store.Delete(taskID)
+		if err != nil {
+			w.WriteHeader(http.StatusNotFound)
+			log.Printf("Deletion failed: %v", err)
+			return
+		}
 
 		w.WriteHeader(http.StatusAccepted)
 	}
