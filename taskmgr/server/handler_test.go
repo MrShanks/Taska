@@ -15,13 +15,15 @@ import (
 
 func TestGetTasksHandler(t *testing.T) {
 	t.Run("GET request on /tasks returns all tasks", func(t *testing.T) {
-
 		// Arrange
+		task1 := task.New("first", "Desc First")
+		task2 := task.New("second", "Desc Second")
+
 		tasks := map[uuid.UUID]*task.Task{
-			uuid.New(): task.New("first", "Desc First"),
-			uuid.New(): task.New("second", "Desc Second"),
-			uuid.New(): task.New("third", "Desc Third"),
+			task1.ID: task1,
+			task2.ID: task2,
 		}
+
 		IMD := storage.InMemoryDatabase{
 			Tasks: tasks,
 		}
@@ -79,5 +81,4 @@ func TestGeneralHandler(t *testing.T) {
 			}
 		})
 	}
-
 }

@@ -18,17 +18,18 @@ func (imd *InMemoryDatabase) GetTasks() map[uuid.UUID]*task.Task {
 }
 
 func (imd *InMemoryDatabase) New(task *task.Task) uuid.UUID {
-	id := uuid.New()
-	imd.Tasks[id] = task
-	return id
+	task.ID = uuid.New()
+	imd.Tasks[task.ID] = task
+	return task.ID
 }
 
 func (imd *InMemoryDatabase) Delete(id string) {
 	UUID := uuid.MustParse(id)
-	if _, ok := imd.Tasks[UUID]; ok {
-		delete(imd.Tasks, UUID)
-		log.Printf("Task with ID: %v has been deleted", UUID)
-	} else {
+	if _, ok := imd.Tasks[UUID]; !ok {
 		log.Printf("Couldn't find a task with that ID: %v", UUID)
+		return
 	}
+
+	delete(imd.Tasks, UUID)
+	log.Printf("Task with ID: %v has been deleted", UUID)
 }

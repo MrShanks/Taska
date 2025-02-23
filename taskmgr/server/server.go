@@ -29,10 +29,14 @@ func NewServer(cfg *utils.Config, store task.Store) *http.Server {
 // Listen initialize the server and waits for requests
 func Listen(cfg *utils.Config) {
 
+	task1 := task.New("first", "Desc First")
+	task2 := task.New("second", "Desc Second")
+	task3 := task.New("third", "Desc Third")
+
 	tasks := map[uuid.UUID]*task.Task{
-		uuid.New(): task.New("first", "Desc First"),
-		uuid.New(): task.New("second", "Desc Second"),
-		uuid.New(): task.New("third", "Desc Third"),
+		task1.ID: task1,
+		task2.ID: task2,
+		task3.ID: task3,
 	}
 
 	IMD := storage.InMemoryDatabase{
