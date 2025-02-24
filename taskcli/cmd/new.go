@@ -126,10 +126,5 @@ func init() {
 	newCmd.PersistentFlags().StringP("title", "t", "Untitled task", "Title of the new fancy task")
 	newCmd.PersistentFlags().StringP("desc", "d", "Default description", "Description of the new task")
 
-	// err := newCmd.MarkPersistentFlagRequired("title")
-	// if err != nil {
-	// 	log.Printf("Error marking persisten flag required: %v", err)
-	// }
-
 	rootCmd.AddCommand(newCmd)
 }
