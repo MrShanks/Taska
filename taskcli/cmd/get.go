@@ -19,7 +19,7 @@ var getCmd = &cobra.Command{
 		ctx := context.Background()
 		apiClient := NewApiClient()
 
-		cmd.Printf("%s", FetchTasks(apiClient, ctx, "/tasks"))
+		cmd.Printf("%s\n", FetchTasks(apiClient, ctx, "/tasks"))
 	},
 }
 
