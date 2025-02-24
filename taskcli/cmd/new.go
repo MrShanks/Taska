@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 
 	"github.com/spf13/cobra"
@@ -24,11 +23,11 @@ var newCmd = &cobra.Command{
 		apiClient := NewApiClient()
 		title, err := cmd.Flags().GetString("title")
 		if err != nil {
-			log.Printf("Couldn't get the passed value: title")
+			cmd.Printf("Couldn't get the passed value: title")
 		}
 		desc, err := cmd.Flags().GetString("desc")
 		if err != nil {
-			log.Printf("Couldn't get the passed value: desc")
+			cmd.Printf("Couldn't get the passed value: desc")
 		}
 
 		cmd.Printf("%s", newTask(apiClient, ctx, "/new", title, desc))
@@ -40,22 +39,22 @@ func newTask(taskcli *Taskcli, ctx context.Context, endpoint, title, desc string
 
 	jsonTask, err := json.Marshal(task.New(title, desc))
 	if err != nil {
-		log.Printf("Couldn't marshal task, error: %v", err)
+		return fmt.Sprintf("Couldn't marshal task, error: %v", err)
 	}
 
 	request, err := http.NewRequestWithContext(ctx, "POST", taskcli.ServerURL.String(), bytes.NewReader(jsonTask))
 	if err != nil {
-		log.Printf("Couldn't create request: %v", err)
+		return fmt.Sprintf("Couldn't create request: %v", err)
 	}
 
 	response, err := taskcli.HttpClient.Do(request)
 	if err != nil {
-		log.Printf("Couldn't get a response from the server: %v", err)
+		return fmt.Sprintf("Couldn't get a response from the server: %v", err)
 	}
 
 	bodyBytes, err := io.ReadAll(response.Body)
 	if err != nil {
-		log.Printf("Couldn't read response body: %v", err)
+		return fmt.Sprintf("Couldn't read response body: %v", err)
 	}
 	defer response.Body.Close()
 
@@ -68,7 +67,7 @@ func init() {
 
 	err := newCmd.MarkPersistentFlagRequired("title")
 	if err != nil {
-		log.Printf("Error marking persisten flag required: %v", err)
+		newCmd.Printf("Error marking persisten flag required: %v", err)
 	}
 
 	rootCmd.AddCommand(newCmd)
