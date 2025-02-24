@@ -68,8 +68,9 @@ func NewTaskHandler(store task.Store) http.HandlerFunc {
 		store.New(&newTask)
 		log.Printf("New task created. ID: %s", newTask.ID)
 
-		w.WriteHeader(http.StatusCreated)
 		EventLogger.WriteNew(newTask.ID, newTask.Title, newTask.Desc)
+
+		w.WriteHeader(http.StatusCreated)
 	}
 }
 
