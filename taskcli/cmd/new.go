@@ -64,7 +64,7 @@ func openEditor() (string, string, error) {
 	defer os.Remove(tmpFile.Name()) // Clean up after editing
 
 	// Open the editor
-	cmd := exec.Command("vim", tmpFile.Name())
+	cmd := exec.Command("vim", tmpFile.Name()) //nolint:gosec // input is passed directly
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
