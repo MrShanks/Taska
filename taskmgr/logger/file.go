@@ -24,7 +24,7 @@ func NewFileTransactionLogger(filename string) (TransactionLogger, error) {
 }
 
 func (l *FileTransactionLogger) WriteNew(id uuid.UUID, title, desc string) {
-	l.events <- Event{Type: New, TaskTitle: title, TaskDesc: desc}
+	l.events <- Event{Type: New, TaskID: id, TaskTitle: title, TaskDesc: desc}
 }
 
 func (l *FileTransactionLogger) WriteMod(id uuid.UUID, title, desc string) {
