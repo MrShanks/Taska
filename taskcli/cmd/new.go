@@ -56,11 +56,6 @@ var newCmd = &cobra.Command{
 // openEditor opens vim editor and returns the edited content.
 // First line is interpreted as title and from the second on will be description
 func openEditor() (string, string, error) {
-	editor := "vim"
-	if editor == "" {
-		return "", "", fmt.Errorf("no editor found")
-	}
-
 	// Create a temporary file
 	tmpFile, err := os.CreateTemp("", "task_edit_*.txt")
 	if err != nil {
@@ -69,7 +64,7 @@ func openEditor() (string, string, error) {
 	defer os.Remove(tmpFile.Name()) // Clean up after editing
 
 	// Open the editor
-	cmd := exec.Command(editor, tmpFile.Name())
+	cmd := exec.Command("vim", tmpFile.Name())
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -86,7 +81,9 @@ func openEditor() (string, string, error) {
 	}
 
 	lines := strings.SplitN(string(content), "\n", 2)
+
 	title := strings.TrimSpace(lines[0]) // First line as title
+
 	description := ""
 	if len(lines) > 1 {
 		description = strings.TrimSpace(lines[1]) // Rest as description
