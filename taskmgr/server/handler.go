@@ -112,6 +112,8 @@ func NewTaskHandler(taskStore task.Store, authorStore author.Store) http.Handler
 
 		log.Printf("New task created with ID: %s", newTaskID)
 
+		EventLogger.WriteNew(newTask.ID, newTask.Title, newTask.Desc)
+
 		w.WriteHeader(http.StatusCreated)
 		_, err = w.Write([]byte(newTaskID.String()))
 		if err != nil {
