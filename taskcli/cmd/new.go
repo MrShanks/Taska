@@ -8,9 +8,6 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"os"
-	"os/exec"
-	"strings"
 
 	"github.com/MrShanks/Taska/common/task"
 	"github.com/spf13/cobra"
@@ -20,76 +17,51 @@ var newCmd = &cobra.Command{
 	Use:   "new",
 	Short: "Create a new task",
 	Long:  "Create a fancy new task. A task name is required, and a description is optional but recommended",
-
-	Run: func(cmd *cobra.Command, args []string) {
-		ctx := context.Background()
-		apiClient := NewApiClient()
-
-		var title, desc string
-		var err error
-
-		if cmd.Flags().NFlag() == 0 {
-			title, desc, err = openEditor()
-			if err != nil {
-				cmd.Printf("couldn't open editor: %v", err)
-			}
-			if title == "" {
-				cmd.Printf("A title must be provided to create a new task")
-				return
-			}
-		} else {
-			title, err = cmd.Flags().GetString("title")
-			if err != nil {
-				log.Printf("Couldn't get the passed value: title")
-			}
-
-			desc, err = cmd.Flags().GetString("desc")
-			if err != nil {
-				log.Printf("Couldn't get the passed value: desc")
-			}
-		}
-
-		cmd.Printf("%s\n", newTask(apiClient, ctx, "/new", title, desc))
-	},
+	Run:   runNewCmd,
 }
 
-// openEditor opens vim editor and returns the edited content.
-// First line is interpreted as title and from the second on will be description
-func openEditor() (string, string, error) {
-	// Create a temporary file
-	tmpFile, err := os.CreateTemp("", "task_edit_*.txt")
+func runNewCmd(cmd *cobra.Command, args []string) {
+	ctx := context.Background()
+	apiClient := NewApiClient()
+
+	title, desc, err := getTaskDetails(cmd)
 	if err != nil {
-		return "", "", err
-	}
-	defer os.Remove(tmpFile.Name()) // Clean up after editing
-
-	// Open the editor
-	cmd := exec.Command("vim", tmpFile.Name()) //nolint:gosec // input is passed directly
-	cmd.Stdin = os.Stdin
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-
-	// Wait for the user to edit and save
-	if err := cmd.Run(); err != nil {
-		return "", "", err
+		cmd.Printf("Error: %v\n", err)
+		return
 	}
 
-	// Read the edited file content
-	content, err := os.ReadFile(tmpFile.Name())
+	if title == "" {
+		cmd.Printf("A title must be provided to create a new task\n")
+		return
+	}
+
+	result := newTask(apiClient, ctx, "/new", title, desc)
+	cmd.Printf("%s\n", result)
+}
+
+// getTaskDetails retrieves the task title and description from flags or the editor.
+func getTaskDetails(cmd *cobra.Command) (string, string, error) {
+	if cmd.Flags().NFlag() == 0 {
+		// No flags provided, open the editor
+		title, desc, err := openEditor()
+		if err != nil {
+			return "", "", fmt.Errorf("couldn't open editor: %v", err)
+		}
+		return title, desc, nil
+	}
+
+	// Flags provided, retrieve values from flags
+	title, err := cmd.Flags().GetString("title")
 	if err != nil {
-		return "", "", err
+		return "", "", fmt.Errorf("couldn't get the passed value: title: %v", err)
 	}
 
-	lines := strings.SplitN(string(content), "\n", 2)
-
-	title := strings.TrimSpace(lines[0]) // First line as title
-
-	description := ""
-	if len(lines) > 1 {
-		description = strings.TrimSpace(lines[1]) // Rest as description
+	desc, err := cmd.Flags().GetString("desc")
+	if err != nil {
+		return "", "", fmt.Errorf("couldn't get the passed value: desc: %v", err)
 	}
 
-	return title, description, nil
+	return title, desc, nil
 }
 
 func newTask(taskcli *Tasckli, ctx context.Context, endpoint, title, desc string) string {
