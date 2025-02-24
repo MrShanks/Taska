@@ -3,15 +3,32 @@ package server
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
 	"net"
 	"net/http"
 	"time"
 
 	"github.com/MrShanks/Taska/common/task"
+	"github.com/MrShanks/Taska/taskmgr/logger"
 	"github.com/MrShanks/Taska/taskmgr/storage"
 	"github.com/MrShanks/Taska/utils"
 )
+
+var EventLogger logger.TransactionLogger
+
+func initTransactionLog() error {
+	var err error
+
+	EventLogger, err = logger.NewFileTransactionLogger("transaction.log")
+	if err != nil {
+		return fmt.Errorf("couldn't create event logger: %v", err)
+	}
+
+	EventLogger.Run()
+
+	return err
+}
 
 func NewServer(cfg *utils.Config, store task.Store) *http.Server {
 	return &http.Server{
@@ -24,7 +41,7 @@ func NewServer(cfg *utils.Config, store task.Store) *http.Server {
 	}
 }
 
-// Listen initialize the server and waits for requests
+// Listen initializes the server the storage and the transaction log and then waits for requests
 func Listen(cfg *utils.Config) error {
 	var err error
 	DB := storage.PostgresDatabase{}
@@ -36,13 +53,23 @@ func Listen(cfg *utils.Config) error {
 	defer DB.Conn.Close(context.Background())
 
 	httpServer := NewServer(cfg, &DB)
+
+	err = initTransactionLog()
+	if err != nil {
+		log.Printf("error occured during transaction log initialization: %v", err)
+		return err
+	}
+
 	log.Printf("Server version: %s listening at %s", cfg.Version, httpServer.Addr)
 
 	err = httpServer.ListenAndServe()
 	if errors.Is(err, http.ErrServerClosed) {
 		return err
-	} else if !errors.Is(err, nil) {
+	}
+
+	if err != nil {
 		return err
 	}
+
 	return nil
 }
