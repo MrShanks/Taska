@@ -5,9 +5,9 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/MrShanks/Taska/common/task"
-	"github.com/google/uuid"
 )
 
 func GetAllTasksHandler(store task.Store) http.HandlerFunc {
@@ -52,19 +52,40 @@ func NewTaskHandler(store task.Store) http.HandlerFunc {
 		}
 		defer r.Body.Close()
 
-		newTask := task.Task{
-			ID: uuid.New(),
-		}
+		newTask := task.Task{}
 
 		err = json.Unmarshal(body, &newTask)
 		if err != nil {
 			http.Error(w, "Invalid JSON format", http.StatusBadRequest)
 			return
 		}
-		store.New(&newTask)
+		newTaskID := store.New(&newTask)
 
-		log.Printf("New task created. ID: %s", newTask.ID)
+		log.Printf("New task created. ID: %s", newTaskID)
 		w.WriteHeader(http.StatusCreated)
+	}
+}
+
+func DeleteTaskHandler(store task.Store) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodDelete {
+			log.Printf("Method: %s is not allowed on /delete endpoint\n", r.Method)
+			w.WriteHeader(http.StatusMethodNotAllowed)
+			return
+		}
+
+		log.Printf("Got request on /delete endpoint\n")
+
+		taskID := strings.Split(r.URL.Path, "/")[2]
+
+		err := store.Delete(taskID)
+		if err != nil {
+			w.WriteHeader(http.StatusNotFound)
+			log.Printf("Deletion failed: %v", err)
+			return
+		}
+
+		w.WriteHeader(http.StatusAccepted)
 	}
 }
 

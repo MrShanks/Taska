@@ -9,13 +9,13 @@ import (
 	"github.com/MrShanks/Taska/utils"
 )
 
-type Tasckli struct {
+type Taskcli struct {
 	HttpClient *http.Client
 	Cfg        *utils.Config
 	ServerURL  url.URL
 }
 
-func NewApiClient() *Tasckli {
+func NewApiClient() *Taskcli {
 	httpClient := &http.Client{
 		Timeout: 10 * time.Second,
 	}
@@ -27,7 +27,7 @@ func NewApiClient() *Tasckli {
 		Host:   net.JoinHostPort(cfg.Spec.Host, cfg.Spec.Port),
 	}
 
-	return &Tasckli{
+	return &Taskcli{
 		HttpClient: httpClient,
 		Cfg:        cfg,
 		ServerURL:  serverURL,

@@ -6,11 +6,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 
-	"github.com/MrShanks/Taska/common/task"
 	"github.com/spf13/cobra"
+
+	"github.com/MrShanks/Taska/common/task"
 )
 
 var newCmd = &cobra.Command{
@@ -64,27 +64,27 @@ func getTaskDetails(cmd *cobra.Command) (string, string, error) {
 	return title, desc, nil
 }
 
-func newTask(taskcli *Tasckli, ctx context.Context, endpoint, title, desc string) string {
+func newTask(taskcli *Taskcli, ctx context.Context, endpoint, title, desc string) string {
 	taskcli.ServerURL.Path = endpoint
 
 	jsonTask, err := json.Marshal(task.New(title, desc))
 	if err != nil {
-		log.Printf("Couldn't marshal task, error: %v", err)
+		return fmt.Sprintf("Couldn't marshal task, error: %v", err)
 	}
 
 	request, err := http.NewRequestWithContext(ctx, "POST", taskcli.ServerURL.String(), bytes.NewReader(jsonTask))
 	if err != nil {
-		log.Printf("Couldn't create request: %v", err)
+		return fmt.Sprintf("Couldn't create request: %v", err)
 	}
 
 	response, err := taskcli.HttpClient.Do(request)
 	if err != nil {
-		log.Printf("Couldn't get a response from the server: %v", err)
+		return fmt.Sprintf("Couldn't get a response from the server: %v", err)
 	}
 
 	bodyBytes, err := io.ReadAll(response.Body)
 	if err != nil {
-		log.Printf("Couldn't read response body: %v", err)
+		return fmt.Sprintf("Couldn't read response body: %v", err)
 	}
 	defer response.Body.Close()
 
