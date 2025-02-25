@@ -15,6 +15,10 @@ import (
 )
 
 func TestNewTaskHandler(t *testing.T) {
+	err := initTransactionLog()
+	if err != nil {
+		t.Errorf("eventLogger couldn't be initialized: %s", err)
+	}
 	// Arrange
 	mockDatabase := storage.InMemoryDatabase{
 		Tasks: map[uuid.UUID]*task.Task{},
