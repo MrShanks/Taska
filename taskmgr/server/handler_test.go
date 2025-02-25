@@ -7,20 +7,25 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/google/uuid"
+
 	"github.com/MrShanks/Taska/common/task"
 	"github.com/MrShanks/Taska/taskmgr/storage"
 )
 
 func TestGetTasksHandler(t *testing.T) {
 	t.Run("GET request on /tasks returns all tasks", func(t *testing.T) {
-
 		// Arrange
+		task1 := task.New("first", "Desc First")
+		task2 := task.New("second", "Desc Second")
+
+		tasks := map[uuid.UUID]*task.Task{
+			task1.ID: task1,
+			task2.ID: task2,
+		}
+
 		IMD := storage.InMemoryDatabase{
-			Tasks: []*task.Task{
-				task.New("first", "Desc First"),
-				task.New("second", "Desc Second"),
-				task.New("third", "Desc Third"),
-			},
+			Tasks: tasks,
 		}
 
 		// Act
@@ -76,5 +81,4 @@ func TestGeneralHandler(t *testing.T) {
 			}
 		})
 	}
-
 }
