@@ -62,7 +62,12 @@ func NewTaskHandler(store task.Store) http.HandlerFunc {
 		newTaskID := store.New(&newTask)
 
 		log.Printf("New task created. ID: %s", newTaskID)
+
 		w.WriteHeader(http.StatusCreated)
+		_, err = w.Write([]byte(newTaskID.String()))
+		if err != nil {
+			log.Printf("Couldn't write response: %v", err)
+		}
 	}
 }
 

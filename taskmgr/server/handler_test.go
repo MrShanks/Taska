@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -18,12 +17,10 @@ import (
 func TestNewTaskHandler(t *testing.T) {
 	// Arrange
 	mockDatabase := storage.InMemoryDatabase{
-		Tasks: []*task.Task{},
+		Tasks: map[uuid.UUID]*task.Task{},
 	}
-	newDummyTask := task.Task{
-		Title: "new upcomig task",
-		Desc:  "title of a new fancy task",
-	}
+
+	newDummyTask := task.New("new upcoming task", "title of a new fancy task")
 
 	body, err := json.Marshal(newDummyTask)
 	if err != nil {
@@ -38,25 +35,15 @@ func TestNewTaskHandler(t *testing.T) {
 
 	handler(response, request)
 
-	gots := map[string][]*task.Task{
-		"Check if there is a new task in the store": mockDatabase.GetTasks(),
-		"Check if the pushed task has been created": mockDatabase.GetTasks(),
-	}
+	id := response.Body.String()
+	UUID := uuid.MustParse(id)
 
-	for testName, got := range gots {
-		t.Run(testName, func(t *testing.T) {
-			// Assert
-			want := task.New(newDummyTask.Title, newDummyTask.Desc)
-			fmt.Printf("lengot = %v, test = %v\n", len(got), testName)
-			if len(got) == 0 {
-				t.Errorf("Expected got != %v", len(got))
-			}
-			if testName == "Check if the pushed task has been created" {
-				if got[0].Title != want.Title {
-					t.Errorf("got: %v, want: %v", got[0].Title, want.Title)
-				}
-			}
-		})
+	// "Check if the pushed task has been created": mockDatabase.GetTasks(),
+	got := mockDatabase.GetTasks()
+	want := task.New(newDummyTask.Title, newDummyTask.Desc)
+
+	if got[UUID].Title != want.Title {
+		t.Errorf("got: %v, want: %v", got[UUID].Title, want.Title)
 	}
 }
 

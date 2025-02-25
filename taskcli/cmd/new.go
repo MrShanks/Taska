@@ -17,21 +17,51 @@ var newCmd = &cobra.Command{
 	Use:   "new",
 	Short: "Create a new task",
 	Long:  "Create a fancy new task. A task name is required, and a description is optional but recommended",
+	Run:   runNewCmd,
+}
 
-	Run: func(cmd *cobra.Command, args []string) {
-		ctx := context.Background()
-		apiClient := NewApiClient()
-		title, err := cmd.Flags().GetString("title")
-		if err != nil {
-			cmd.Printf("Couldn't get the passed value: title")
-		}
-		desc, err := cmd.Flags().GetString("desc")
-		if err != nil {
-			cmd.Printf("Couldn't get the passed value: desc")
-		}
+func runNewCmd(cmd *cobra.Command, args []string) {
+	ctx := context.Background()
+	apiClient := NewApiClient()
 
-		cmd.Printf("%s", newTask(apiClient, ctx, "/new", title, desc))
-	},
+	title, desc, err := getTaskDetails(cmd)
+	if err != nil {
+		cmd.Printf("Error: %v\n", err)
+		return
+	}
+
+	if title == "" {
+		cmd.Printf("A title must be provided to create a new task\n")
+		return
+	}
+
+	result := newTask(apiClient, ctx, "/new", title, desc)
+	cmd.Printf("%s\n", result)
+}
+
+// getTaskDetails retrieves the task title and description from flags or the editor.
+func getTaskDetails(cmd *cobra.Command) (string, string, error) {
+	if cmd.Flags().NFlag() == 0 {
+		// No flags provided, open the editor
+		title, desc, err := openEditor()
+		if err != nil {
+			return "", "", fmt.Errorf("couldn't open editor: %v", err)
+		}
+		return title, desc, nil
+	}
+
+	// Flags provided, retrieve values from flags
+	title, err := cmd.Flags().GetString("title")
+	if err != nil {
+		return "", "", fmt.Errorf("couldn't get the passed value: title: %v", err)
+	}
+
+	desc, err := cmd.Flags().GetString("desc")
+	if err != nil {
+		return "", "", fmt.Errorf("couldn't get the passed value: desc: %v", err)
+	}
+
+	return title, desc, nil
 }
 
 func newTask(taskcli *Taskcli, ctx context.Context, endpoint, title, desc string) string {
@@ -64,11 +94,6 @@ func newTask(taskcli *Taskcli, ctx context.Context, endpoint, title, desc string
 func init() {
 	newCmd.PersistentFlags().StringP("title", "t", "Untitled task", "Title of the new fancy task")
 	newCmd.PersistentFlags().StringP("desc", "d", "Default description", "Description of the new task")
-
-	err := newCmd.MarkPersistentFlagRequired("title")
-	if err != nil {
-		newCmd.Printf("Error marking persisten flag required: %v", err)
-	}
 
 	rootCmd.AddCommand(newCmd)
 }
