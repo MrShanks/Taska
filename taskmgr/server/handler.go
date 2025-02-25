@@ -184,6 +184,7 @@ func DeleteTaskHandler(store task.Store) http.HandlerFunc {
 		}
 
 		w.WriteHeader(http.StatusAccepted)
+		EventLogger.WriteDel(uuid.MustParse(taskID))
 	}
 }
 
