@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/MrShanks/Taska/common/task"
+	"github.com/google/uuid"
 )
 
 func GetAllTasksHandler(store task.Store) http.HandlerFunc {
@@ -96,6 +97,7 @@ func DeleteTaskHandler(store task.Store) http.HandlerFunc {
 		}
 
 		w.WriteHeader(http.StatusAccepted)
+		EventLogger.WriteDel(uuid.MustParse(taskID))
 	}
 }
 
