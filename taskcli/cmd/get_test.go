@@ -33,7 +33,7 @@ func TestFetchTasks(t *testing.T) {
 			t.Errorf("couldn't parse mock server url")
 		}
 
-		mockClient := &Tasckli{
+		mockClient := &Taskcli{
 			HttpClient: &http.Client{},
 			ServerURL:  *serverURL,
 		}

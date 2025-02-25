@@ -1,26 +1,65 @@
 package server
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
+	"github.com/google/uuid"
+
 	"github.com/MrShanks/Taska/common/task"
 	"github.com/MrShanks/Taska/taskmgr/storage"
 )
 
+func TestNewTaskHandler(t *testing.T) {
+	// Arrange
+	mockDatabase := storage.InMemoryDatabase{
+		Tasks: map[uuid.UUID]*task.Task{},
+	}
+
+	newDummyTask := task.New("new upcoming task", "title of a new fancy task")
+
+	body, err := json.Marshal(newDummyTask)
+	if err != nil {
+		t.Errorf("Unable to marshal the dummy task")
+	}
+
+	// Act
+	handler := NewTaskHandler(&mockDatabase)
+
+	request, _ := http.NewRequestWithContext(context.Background(), http.MethodPost, "/new", bytes.NewBuffer(body))
+	response := httptest.NewRecorder()
+
+	handler(response, request)
+
+	id := response.Body.String()
+	UUID := uuid.MustParse(id)
+
+	// "Check if the pushed task has been created": mockDatabase.GetTasks(),
+	got := mockDatabase.GetTasks()
+	want := task.New(newDummyTask.Title, newDummyTask.Desc)
+
+	if got[UUID].Title != want.Title {
+		t.Errorf("got: %v, want: %v", got[UUID].Title, want.Title)
+	}
+}
+
 func TestGetTasksHandler(t *testing.T) {
 	t.Run("GET request on /tasks returns all tasks", func(t *testing.T) {
-
 		// Arrange
+		task1 := task.New("first", "Desc First")
+		task2 := task.New("second", "Desc Second")
+
+		tasks := map[uuid.UUID]*task.Task{
+			task1.ID: task1,
+			task2.ID: task2,
+		}
+
 		IMD := storage.InMemoryDatabase{
-			Tasks: []*task.Task{
-				task.New("first", "Desc First"),
-				task.New("second", "Desc Second"),
-				task.New("third", "Desc Third"),
-			},
+			Tasks: tasks,
 		}
 
 		// Act
@@ -76,5 +115,4 @@ func TestGeneralHandler(t *testing.T) {
 			}
 		})
 	}
-
 }

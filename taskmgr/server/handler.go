@@ -5,9 +5,9 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/MrShanks/Taska/common/task"
-	"github.com/google/uuid"
 )
 
 func GetAllTasksHandler(store task.Store) http.HandlerFunc {
@@ -55,9 +55,7 @@ func NewTaskHandler(store task.Store) http.HandlerFunc {
 		}
 		defer r.Body.Close()
 
-		newTask := task.Task{
-			ID: uuid.New(),
-		}
+		newTask := task.Task{}
 
 		err = json.Unmarshal(body, &newTask)
 		if err != nil {
@@ -71,6 +69,33 @@ func NewTaskHandler(store task.Store) http.HandlerFunc {
 		EventLogger.WriteNew(newTask.ID, newTask.Title, newTask.Desc)
 
 		w.WriteHeader(http.StatusCreated)
+		_, err = w.Write([]byte(newTask.ID.String()))
+		if err != nil {
+			log.Printf("Couldn't write response: %v", err)
+		}
+	}
+}
+
+func DeleteTaskHandler(store task.Store) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodDelete {
+			log.Printf("Method: %s is not allowed on /delete endpoint\n", r.Method)
+			w.WriteHeader(http.StatusMethodNotAllowed)
+			return
+		}
+
+		log.Printf("Got request on /delete endpoint\n")
+
+		taskID := strings.Split(r.URL.Path, "/")[2]
+
+		err := store.Delete(taskID)
+		if err != nil {
+			w.WriteHeader(http.StatusNotFound)
+			log.Printf("Deletion failed: %v", err)
+			return
+		}
+
+		w.WriteHeader(http.StatusAccepted)
 	}
 }
 
