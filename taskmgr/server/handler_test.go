@@ -1,8 +1,10 @@
 package server
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -12,6 +14,51 @@ import (
 	"github.com/MrShanks/Taska/common/task"
 	"github.com/MrShanks/Taska/taskmgr/storage"
 )
+
+func TestNewTaskHandler(t *testing.T) {
+	// Arrange
+	mockDatabase := storage.InMemoryDatabase{
+		Tasks: []*task.Task{},
+	}
+	newDummyTask := task.Task{
+		Title: "new upcomig task",
+		Desc:  "title of a new fancy task",
+	}
+
+	body, err := json.Marshal(newDummyTask)
+	if err != nil {
+		t.Errorf("Unable to marshal the dummy task")
+	}
+
+	// Act
+	handler := NewTaskHandler(&mockDatabase)
+
+	request, _ := http.NewRequestWithContext(context.Background(), http.MethodPost, "/new", bytes.NewBuffer(body))
+	response := httptest.NewRecorder()
+
+	handler(response, request)
+
+	gots := map[string][]*task.Task{
+		"Check if there is a new task in the store": mockDatabase.GetTasks(),
+		"Check if the pushed task has been created": mockDatabase.GetTasks(),
+	}
+
+	for testName, got := range gots {
+		t.Run(testName, func(t *testing.T) {
+			// Assert
+			want := task.New(newDummyTask.Title, newDummyTask.Desc)
+			fmt.Printf("lengot = %v, test = %v\n", len(got), testName)
+			if len(got) == 0 {
+				t.Errorf("Expected got != %v", len(got))
+			}
+			if testName == "Check if the pushed task has been created" {
+				if got[0].Title != want.Title {
+					t.Errorf("got: %v, want: %v", got[0].Title, want.Title)
+				}
+			}
+		})
+	}
+}
 
 func TestGetTasksHandler(t *testing.T) {
 	t.Run("GET request on /tasks returns all tasks", func(t *testing.T) {
