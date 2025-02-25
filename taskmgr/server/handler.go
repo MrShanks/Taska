@@ -182,6 +182,7 @@ func DeleteTaskHandler(taskStore task.Store, authorStore author.Store) http.Hand
 		}
 
 		w.WriteHeader(http.StatusAccepted)
+		EventLogger.WriteDel(uuid.MustParse(taskID))
 	}
 }
 
