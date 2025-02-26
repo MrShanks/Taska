@@ -29,6 +29,25 @@ func initTransactionLog() error {
 		return fmt.Errorf("couldn't create event logger: %v", err)
 	}
 
+	events, errs := EventLogger.ReadEvents()
+
+	e, ok := logger.Event{}, true
+
+	for ok && err == nil {
+		select {
+		case err, ok = <-errs:
+		case e, ok = <-events:
+			switch e.Type {
+			case logger.Del:
+				// TODO: implement Deletion
+			case logger.Mod:
+				// TODO: implement Modification
+			case logger.New:
+				// TODO: implement Creation
+			}
+		}
+	}
+
 	EventLogger.Run()
 
 	return err
