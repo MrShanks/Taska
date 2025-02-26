@@ -8,10 +8,13 @@ import (
 	"strings"
 
 	"github.com/MrShanks/Taska/common/task"
+	"github.com/google/uuid"
 )
 
 func GetAllTasksHandler(store task.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		log.Printf("Got request on /tasks endpoint\n")
+
 		if r.Method != http.MethodGet {
 			log.Printf("Method: %s is not allowed on /tasks endpoint\n", r.Method)
 
@@ -19,16 +22,16 @@ func GetAllTasksHandler(store task.Store) http.HandlerFunc {
 			return
 		}
 
-		log.Printf("Got request on /tasks endpoint\n")
-
 		jsonTasks, err := json.Marshal(store.GetTasks())
 		if err != nil {
 			log.Printf("Couldn't Marshal tasks into json format: %v", err)
+
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 
 		w.Header().Set("Content-Type", "application/json")
+
 		_, err = w.Write(jsonTasks)
 		if err != nil {
 			log.Printf("Couldn't write response: %v", err)
@@ -38,13 +41,14 @@ func GetAllTasksHandler(store task.Store) http.HandlerFunc {
 
 func NewTaskHandler(store task.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		log.Printf("Got request on /new endpoint\n")
+
 		if r.Method != http.MethodPost {
 			log.Printf("Method: %s is not allowed on /new endpoint\n", r.Method)
+
 			w.WriteHeader(http.StatusMethodNotAllowed)
 			return
 		}
-
-		log.Printf("Got request on /new endpoint\n")
 
 		body, err := io.ReadAll(r.Body)
 		if err != nil {
@@ -59,12 +63,14 @@ func NewTaskHandler(store task.Store) http.HandlerFunc {
 			http.Error(w, "Invalid JSON format", http.StatusBadRequest)
 			return
 		}
-		newTaskID := store.New(&newTask)
 
-		log.Printf("New task created. ID: %s", newTaskID)
+		store.New(&newTask)
+		log.Printf("New task created. ID: %s", newTask.ID)
+
+		EventLogger.WriteNew(newTask.ID, newTask.Title, newTask.Desc)
 
 		w.WriteHeader(http.StatusCreated)
-		_, err = w.Write([]byte(newTaskID.String()))
+		_, err = w.Write([]byte(newTask.ID.String()))
 		if err != nil {
 			log.Printf("Couldn't write response: %v", err)
 		}
@@ -91,6 +97,7 @@ func DeleteTaskHandler(store task.Store) http.HandlerFunc {
 		}
 
 		w.WriteHeader(http.StatusAccepted)
+		EventLogger.WriteDel(uuid.MustParse(taskID))
 	}
 }
 
@@ -98,6 +105,7 @@ func homeHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("Got request on / endpoint")
 
 	w.WriteHeader(http.StatusOK)
+
 	_, err := w.Write([]byte("Welcome to your dashboard"))
 	if err != nil {
 		log.Printf("Couldn't write response: %v", err)
