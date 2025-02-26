@@ -6,7 +6,6 @@ type Operation string
 
 const (
 	New Operation = "NEW"
-	Get Operation = "GET"
 	Mod Operation = "MOD"
 	Del Operation = "DEL"
 )

@@ -1,8 +1,11 @@
 package logger
 
 import (
+	"bufio"
 	"fmt"
 	"os"
+	"strconv"
+	"strings"
 
 	"github.com/google/uuid"
 )
@@ -33,6 +36,44 @@ func (l *FileTransactionLogger) WriteMod(id uuid.UUID, title, desc string) {
 
 func (l *FileTransactionLogger) WriteDel(id uuid.UUID) {
 	l.events <- Event{Type: Del, TaskID: id}
+}
+
+func (l *FileTransactionLogger) ReadEvents() (<-chan Event, <-chan error) {
+	scanner := bufio.NewScanner(l.file)
+
+	outEvent := make(chan Event)
+	outError := make(chan error)
+
+	go func() {
+		var err error
+		var e Event
+		defer close(outEvent)
+		defer close(outError)
+
+		for scanner.Scan() {
+			line := scanner.Text()
+
+			if e.ID, err = strconv.Atoi(strings.Split(line, "\t")[0]); err != nil {
+				outError <- fmt.Errorf("couldn't parse line %q: %v", line, err)
+			}
+
+			if l.lastID >= e.ID {
+				outError <- fmt.Errorf("transaction number out of sequence")
+				return
+			}
+
+			l.lastID = e.ID
+
+			outEvent <- e
+		}
+
+		if err := scanner.Err(); err != nil {
+			outError <- fmt.Errorf("couldn't scan transaction log file: %v", err)
+			return
+		}
+	}()
+
+	return outEvent, outError
 }
 
 func (l *FileTransactionLogger) Err() <-chan error {
