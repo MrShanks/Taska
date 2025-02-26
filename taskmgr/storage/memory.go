@@ -25,10 +25,15 @@ func (imd *InMemoryDatabase) New(task *task.Task) uuid.UUID {
 }
 
 func (imd *InMemoryDatabase) Update(id, title, desc string) (*task.Task, error) {
-	updateTask := imd.Tasks[uuid.MustParse(id)]
-	if _, ok := imd.Tasks[updateTask.ID]; !ok {
+	taskID, err := uuid.Parse(id)
+	if err != nil {
+		return nil, fmt.Errorf("invalid uuid")
+	}
+
+	if _, ok := imd.Tasks[taskID]; !ok {
 		return nil, fmt.Errorf("task not found")
 	}
+	updateTask := imd.Tasks[uuid.MustParse(id)]
 
 	if title != "" {
 		updateTask.Title = title
