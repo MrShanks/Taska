@@ -47,7 +47,10 @@ func (imd *InMemoryDatabase) Update(id, title, desc string) (*task.Task, error) 
 }
 
 func (imd *InMemoryDatabase) Delete(id string) error {
-	UUID := uuid.MustParse(id)
+	UUID, err := uuid.Parse(id)
+	if err != nil {
+		return fmt.Errorf("invalid uuid: %s", id)
+	}
 	if _, ok := imd.Tasks[UUID]; !ok {
 		return fmt.Errorf("task with ID: %v not found", UUID)
 	}
