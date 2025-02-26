@@ -2,7 +2,6 @@ package server
 
 import (
 	"encoding/json"
-	"errors"
 	"io"
 	"log"
 	"net/http"
@@ -14,7 +13,6 @@ import (
 func GetAllTasksHandler(store task.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := isAllowedMethod(http.MethodGet, w, r); err != nil {
-			log.Printf("%s\n", err)
 			return
 		}
 
@@ -38,7 +36,6 @@ func GetAllTasksHandler(store task.Store) http.HandlerFunc {
 func NewTaskHandler(store task.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := isAllowedMethod(http.MethodPost, w, r); err != nil {
-			log.Printf("%s\n", err)
 			return
 		}
 
@@ -72,7 +69,6 @@ func NewTaskHandler(store task.Store) http.HandlerFunc {
 func UpdateTaskHandler(store task.Store) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := isAllowedMethod(http.MethodPut, w, r); err != nil {
-			log.Printf("%s\n", err)
 			return
 		}
 
@@ -98,7 +94,7 @@ func UpdateTaskHandler(store task.Store) func(http.ResponseWriter, *http.Request
 		updatedTask, err := store.Update(taskID, changes.Title, changes.Desc)
 		if err != nil {
 			w.WriteHeader(http.StatusNotFound)
-			log.Printf("Update failed: %v", err)
+			log.Printf("Error updating task: %v", err)
 			return
 		}
 
@@ -120,7 +116,6 @@ func UpdateTaskHandler(store task.Store) func(http.ResponseWriter, *http.Request
 func DeleteTaskHandler(store task.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := isAllowedMethod(http.MethodDelete, w, r); err != nil {
-			log.Printf("%s\n", err)
 			return
 		}
 
@@ -160,7 +155,6 @@ func isAllowedMethod(httpMethod string, w http.ResponseWriter, r *http.Request) 
 	if r.Method != httpMethod {
 		log.Printf("Method: %s is not allowed\n", r.Method)
 		w.WriteHeader(http.StatusMethodNotAllowed)
-		return errors.New("method not allowed")
 	}
 	return nil
 }
