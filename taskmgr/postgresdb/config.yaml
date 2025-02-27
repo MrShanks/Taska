@@ -1,0 +1,5 @@
+HOSTNAMAE : localhost
+PORT : 5432
+USERNAME : taskauser
+PASSWORD : secure_password
+DATABASE : taskadb
