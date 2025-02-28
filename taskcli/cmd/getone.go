@@ -1,0 +1,95 @@
+package cmd
+
+import (
+	"context"
+	"encoding/json"
+	"fmt"
+	"github.com/MrShanks/Taska/common/task"
+	"github.com/google/uuid"
+	"github.com/spf13/cobra"
+	"io"
+	"log"
+	"net/http"
+)
+
+var getOneCmd = &cobra.Command{
+	Use:   "getone [uuid]",
+	Short: "Get one task",
+	Long:  "Get one active task from the server",
+	Args: cobra.ExactArgs(1),
+
+	ValidArgsFunction: getCompletion,
+	Run: func(cmd *cobra.Command, args []string) {
+		apiClient := NewApiClient()
+		ctx := context.Background()
+
+		cmd.Printf(FetchSingleTask(apiClient, ctx, fmt.Sprintf("/task/%s", args[0])))
+	},
+}
+
+func FetchSingleTask(taskcli *Taskcli, ctx context.Context, endpoint string) string {
+	taskcli.ServerURL.Path = endpoint
+
+	request, err := http.NewRequestWithContext(ctx, "GET", taskcli.ServerURL.String(), nil)
+	if err != nil {
+		return fmt.Sprintf("Couldn't create request: %v", err)
+	}
+
+	response, err := taskcli.HttpClient.Do(request)
+	if err != nil {
+		return fmt.Sprintf("Couldn't get a response from the server: %v", err)
+	}
+
+	bodyBytes, err := io.ReadAll(response.Body)
+	if err != nil {
+		return fmt.Sprintf("Couldn't read response body: %v", err)
+	}
+	defer response.Body.Close()
+
+	return fmt.Sprintf("%v", string(bodyBytes))
+}
+
+func getCompletion(_ *cobra.Command, _ []string, _ string) ([]string, cobra.ShellCompDirective) {
+	apiClient := NewApiClient()
+	ctx := context.Background()
+	titles := GetTaskTitles(apiClient, ctx, "/tasks")
+
+	return titles, cobra.ShellCompDirectiveNoFileComp
+}
+
+func GetTaskTitles(taskcli *Taskcli, ctx context.Context, endpoint string) []string {
+	taskcli.ServerURL.Path = endpoint
+
+	request, err := http.NewRequestWithContext(ctx, "GET", taskcli.ServerURL.String(), nil)
+	if err != nil {
+		fmt.Printf("Couldn't create request: %v", err)
+	}
+
+	response, err := taskcli.HttpClient.Do(request)
+	if err != nil {
+		fmt.Printf("Couldn't get a response from the server: %v", err)
+	}
+
+	bodyBytes, err := io.ReadAll(response.Body)
+	if err != nil {
+		fmt.Printf("Couldn't read response body: %v", err)
+	}
+	defer response.Body.Close()
+
+	var tasks map[uuid.UUID]*task.Task
+	err = json.Unmarshal(bodyBytes, &tasks)
+	if err != nil {
+		log.Printf("Couldn't decode JSON: %v", err)
+	}
+
+	uuids := make([]string, len(tasks))
+	for _, t := range tasks {
+		uuids = append(uuids, t.ID.String())
+	}
+
+	return uuids
+}
+
+func init() {
+	rootCmd.AddCommand(getOneCmd)
+}
