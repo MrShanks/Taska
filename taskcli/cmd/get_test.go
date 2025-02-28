@@ -11,10 +11,10 @@ import (
 	"github.com/MrShanks/Taska/common/task"
 )
 
-func TestFetchTasks(t *testing.T) {
+func TestFetch(t *testing.T) {
 	t.Run("Fetch Tasks returns all tasks in the store", func(t *testing.T) {
-		task := task.New("task1", "this is the task desc")
-		jsonTask, err := json.Marshal(task)
+		task1 := task.New("task1", "this is the task desc")
+		jsonTask, err := json.Marshal(task1)
 		if err != nil {
 			t.Errorf("couldn't Marshal task")
 		}
@@ -38,7 +38,7 @@ func TestFetchTasks(t *testing.T) {
 			ServerURL:  *serverURL,
 		}
 
-		got := FetchTasks(mockClient, context.Background(), "/tasks")
+		got := Fetch(mockClient, context.Background(), "/tasks")
 		want := string(jsonTask)
 
 		if got != want {

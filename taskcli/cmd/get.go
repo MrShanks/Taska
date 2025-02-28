@@ -18,11 +18,11 @@ var getCmd = &cobra.Command{
 		ctx := context.Background()
 		apiClient := NewApiClient()
 
-		cmd.Printf("%s\n", FetchTasks(apiClient, ctx, "/tasks"))
+		cmd.Printf("%s\n", Fetch(apiClient, ctx, "/tasks"))
 	},
 }
 
-func FetchTasks(taskcli *Taskcli, ctx context.Context, endpoint string) string {
+func Fetch(taskcli *Taskcli, ctx context.Context, endpoint string) string {
 	taskcli.ServerURL.Path = endpoint
 
 	request, err := http.NewRequestWithContext(ctx, "GET", taskcli.ServerURL.String(), nil)
