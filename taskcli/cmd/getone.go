@@ -23,30 +23,8 @@ var getOneCmd = &cobra.Command{
 		apiClient := NewApiClient()
 		ctx := context.Background()
 
-		cmd.Printf(FetchSingleTask(apiClient, ctx, fmt.Sprintf("/task/%s", args[0])))
+		cmd.Printf(Fetch(apiClient, ctx, fmt.Sprintf("/task/%s", args[0])))
 	},
-}
-
-func FetchSingleTask(taskcli *Taskcli, ctx context.Context, endpoint string) string {
-	taskcli.ServerURL.Path = endpoint
-
-	request, err := http.NewRequestWithContext(ctx, "GET", taskcli.ServerURL.String(), nil)
-	if err != nil {
-		return fmt.Sprintf("Couldn't create request: %v", err)
-	}
-
-	response, err := taskcli.HttpClient.Do(request)
-	if err != nil {
-		return fmt.Sprintf("Couldn't get a response from the server: %v", err)
-	}
-
-	bodyBytes, err := io.ReadAll(response.Body)
-	if err != nil {
-		return fmt.Sprintf("Couldn't read response body: %v", err)
-	}
-	defer response.Body.Close()
-
-	return fmt.Sprintf("%v", string(bodyBytes))
 }
 
 func getCompletion(_ *cobra.Command, _ []string, _ string) ([]string, cobra.ShellCompDirective) {
