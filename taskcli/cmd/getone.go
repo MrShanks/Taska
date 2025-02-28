@@ -16,7 +16,7 @@ var getOneCmd = &cobra.Command{
 	Use:   "getone [uuid]",
 	Short: "Get one task",
 	Long:  "Get one active task from the server",
-	Args: cobra.ExactArgs(1),
+	Args:  cobra.ExactArgs(1),
 
 	ValidArgsFunction: getCompletion,
 	Run: func(cmd *cobra.Command, args []string) {
