@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 
 	"github.com/spf13/cobra"
@@ -23,9 +22,10 @@ var modCmd = &cobra.Command{
 		id, err := cmd.Flags().GetString("id")
 		if err != nil {
 			cmd.Printf("Couldn't retrieve id flag: %v\n", err)
+			return
 		}
 
-		title, desc, err := getTaskDetails(cmd)
+		title, desc, err := getFlags(cmd, 1)
 		if err != nil {
 			cmd.Printf("Error: %v\n", err)
 			return
@@ -64,9 +64,7 @@ func init() {
 	modCmd.Flags().StringP("desc", "d", "new description", "New description of the task")
 
 	err := modCmd.MarkFlagRequired("id")
-	if err != nil {
-		log.Printf("Error marking flag required: %v\n", err)
-	}
+	cobra.CheckErr(err)
 
 	rootCmd.AddCommand(modCmd)
 }

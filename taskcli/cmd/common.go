@@ -1,9 +1,12 @@
 package cmd
 
 import (
+	"fmt"
 	"os"
 	"os/exec"
 	"strings"
+
+	"github.com/spf13/cobra"
 )
 
 // openEditor opens vim editor and returns the edited content.
@@ -43,4 +46,31 @@ func openEditor() (string, string, error) {
 	}
 
 	return title, description, nil
+}
+
+func getFlags(cmd *cobra.Command, required int) (string, string, error) {
+	title, err := cmd.Flags().GetString("title")
+	if err != nil {
+		return "", "", fmt.Errorf("couldn't get the passed value: title: %v", err)
+	}
+
+	desc, err := cmd.Flags().GetString("desc")
+	if err != nil {
+		return title, "", fmt.Errorf("couldn't get the passed value: desc: %v", err)
+	}
+
+	if cmd.Flags().NFlag() == required {
+		// No title or desc provided, open the editor
+		title, desc, err = openEditor()
+		if err != nil {
+			return "", "", fmt.Errorf("couldn't open editor: %v", err)
+		}
+	}
+
+	if title == "" && desc == "" {
+		return "", "", fmt.Errorf("you must provide at least a title or a desc flag to modify a task")
+
+	}
+
+	return title, desc, nil
 }
