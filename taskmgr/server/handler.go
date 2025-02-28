@@ -12,10 +12,7 @@ import (
 
 func GetAllTasksHandler(store task.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodGet {
-			log.Printf("Method: %s is not allowed on /tasks endpoint\n", r.Method)
-
-			w.WriteHeader(http.StatusMethodNotAllowed)
+		if err := isAllowedMethod(http.MethodGet, w, r); err != nil {
 			return
 		}
 
@@ -38,9 +35,7 @@ func GetAllTasksHandler(store task.Store) http.HandlerFunc {
 
 func NewTaskHandler(store task.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodPost {
-			log.Printf("Method: %s is not allowed on /new endpoint\n", r.Method)
-			w.WriteHeader(http.StatusMethodNotAllowed)
+		if err := isAllowedMethod(http.MethodPost, w, r); err != nil {
 			return
 		}
 
@@ -71,11 +66,56 @@ func NewTaskHandler(store task.Store) http.HandlerFunc {
 	}
 }
 
+func UpdateTaskHandler(store task.Store) func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if err := isAllowedMethod(http.MethodPut, w, r); err != nil {
+			return
+		}
+
+		log.Printf("Got request on /update endpoint\n")
+
+		taskID := strings.Split(r.URL.Path, "/")[2]
+
+		changes := task.Task{}
+
+		reqBody, err := io.ReadAll(r.Body)
+		if err != nil {
+			log.Printf("Couldn't read the body. Error type: %s", err)
+		}
+		defer r.Body.Close()
+
+		err = json.Unmarshal(reqBody, &changes)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			log.Printf("Couldn't unmarshal the body. Error type: %s", err)
+			return
+		}
+
+		updatedTask, err := store.Update(taskID, changes.Title, changes.Desc)
+		if err != nil {
+			w.WriteHeader(http.StatusNotFound)
+			log.Printf("Error updating task: %v", err)
+			return
+		}
+
+		jsonTask, err := json.Marshal(updatedTask)
+		if err != nil {
+			log.Printf("Couldn't marshal task into json format: %v", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		w.WriteHeader(http.StatusAccepted)
+		_, err = w.Write(jsonTask)
+		if err != nil {
+			log.Printf("Couldn't write response: %v", err)
+		}
+	}
+}
+
 func DeleteTaskHandler(store task.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodDelete {
-			log.Printf("Method: %s is not allowed on /delete endpoint\n", r.Method)
-			w.WriteHeader(http.StatusMethodNotAllowed)
+		if err := isAllowedMethod(http.MethodDelete, w, r); err != nil {
 			return
 		}
 
@@ -109,4 +149,12 @@ func faviconHandler(w http.ResponseWriter, r *http.Request) {
 	// This is needed because browser always issue a second
 	// http request to get the favicon for a website
 	w.WriteHeader(http.StatusNoContent)
+}
+
+func isAllowedMethod(httpMethod string, w http.ResponseWriter, r *http.Request) error {
+	if r.Method != httpMethod {
+		log.Printf("Method: %s is not allowed\n", r.Method)
+		w.WriteHeader(http.StatusMethodNotAllowed)
+	}
+	return nil
 }

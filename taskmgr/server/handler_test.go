@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -77,6 +78,43 @@ func TestGetTasksHandler(t *testing.T) {
 		got := response.Body.String()
 		wantBytes, _ := json.Marshal(IMD.GetTasks())
 		want := string(wantBytes)
+
+		if got != want {
+			t.Errorf("got %q, want %q", got, want)
+		}
+	})
+}
+
+func TestUpdateTaskHandler(t *testing.T) {
+	t.Run("PUT request on /update/{task_id} updates the selected task", func(t *testing.T) {
+		// Arrange
+		task1 := task.New("before change", "before the changes have been applied")
+
+		tasks := map[uuid.UUID]*task.Task{
+			task1.ID: task1,
+		}
+
+		IMD := storage.InMemoryDatabase{
+			Tasks: tasks,
+		}
+
+		// Act
+		handler := UpdateTaskHandler(&IMD)
+
+		body := &bytes.Buffer{}
+		body.Write([]byte(`{"title":"new title","desc":"new description"}`))
+
+		request, err := http.NewRequestWithContext(context.Background(), http.MethodPut, fmt.Sprintf("/delete/%s", task1.ID), body)
+		if err != nil {
+			t.Errorf("couldn't create request")
+		}
+		response := httptest.NewRecorder()
+
+		handler(response, request)
+
+		// Assert
+		got := response.Body.String()
+		want := fmt.Sprintf(`{"id":"%s","title":"new title","desc":"new description"}`, task1.ID.String())
 
 		if got != want {
 			t.Errorf("got %q, want %q", got, want)

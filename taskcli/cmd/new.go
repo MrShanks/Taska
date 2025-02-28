@@ -17,14 +17,15 @@ var newCmd = &cobra.Command{
 	Use:   "new",
 	Short: "Create a new task",
 	Long:  "Create a fancy new task. A task name is required, and a description is optional but recommended",
-	Run:   runNewCmd,
+
+	Run: runNewCmd,
 }
 
 func runNewCmd(cmd *cobra.Command, args []string) {
 	ctx := context.Background()
 	apiClient := NewApiClient()
 
-	title, desc, err := getTaskDetails(cmd)
+	title, desc, err := getFlags(cmd, 0)
 	if err != nil {
 		cmd.Printf("Error: %v\n", err)
 		return
@@ -37,31 +38,6 @@ func runNewCmd(cmd *cobra.Command, args []string) {
 
 	result := newTask(apiClient, ctx, "/new", title, desc)
 	cmd.Printf("%s\n", result)
-}
-
-// getTaskDetails retrieves the task title and description from flags or the editor.
-func getTaskDetails(cmd *cobra.Command) (string, string, error) {
-	if cmd.Flags().NFlag() == 0 {
-		// No flags provided, open the editor
-		title, desc, err := openEditor()
-		if err != nil {
-			return "", "", fmt.Errorf("couldn't open editor: %v", err)
-		}
-		return title, desc, nil
-	}
-
-	// Flags provided, retrieve values from flags
-	title, err := cmd.Flags().GetString("title")
-	if err != nil {
-		return "", "", fmt.Errorf("couldn't get the passed value: title: %v", err)
-	}
-
-	desc, err := cmd.Flags().GetString("desc")
-	if err != nil {
-		return "", "", fmt.Errorf("couldn't get the passed value: desc: %v", err)
-	}
-
-	return title, desc, nil
 }
 
 func newTask(taskcli *Taskcli, ctx context.Context, endpoint, title, desc string) string {
