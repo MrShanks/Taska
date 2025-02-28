@@ -54,7 +54,7 @@ var getCmd = &cobra.Command{
 		output, err := json.Marshal(data)
 		cobra.CheckErr(err)
 
-		cmd.Printf(fmt.Sprintf("%s\n", string(output)))
+		cmd.Printf("%s\n", string(output))
 	},
 }
 
@@ -78,6 +78,7 @@ func dumpOnFile(filepath, format string, data []byte) {
 
 func FetchTasks(taskcli *Taskcli, ctx context.Context, endpoint string) map[uuid.UUID]*task.Task {
 	taskcli.ServerURL.Path = endpoint
+	fmt.Println(taskcli.ServerURL.String())
 
 	request, err := http.NewRequestWithContext(ctx, "GET", taskcli.ServerURL.String(), nil)
 	if err != nil {

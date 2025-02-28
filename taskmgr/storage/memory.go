@@ -14,6 +14,20 @@ type InMemoryDatabase struct {
 	Tasks map[uuid.UUID]*task.Task
 }
 
+func (imd *InMemoryDatabase) GetOne(id string) (*task.Task, error) {
+	UUID, err := uuid.Parse(id)
+	if err != nil {
+		return nil, fmt.Errorf("invalid uuid: %s", id)
+	}
+
+	t, ok := imd.Tasks[UUID]
+	if !ok {
+		return nil, fmt.Errorf("task with ID: %v not found", UUID)
+	}
+
+	return t, nil
+}
+
 func (imd *InMemoryDatabase) GetTasks() map[uuid.UUID]*task.Task {
 	return imd.Tasks
 }
