@@ -18,7 +18,7 @@ import (
 var getCmd = &cobra.Command{
 	Use:   "get",
 	Short: "Get all active tasks",
-	Long:  "Get all active tasks store on the server",
+	Long:  "Get or dump on a file all active tasks stored on the server",
 
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx := context.Background()
