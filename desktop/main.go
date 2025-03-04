@@ -16,19 +16,8 @@ import (
 	"github.com/google/uuid"
 )
 
-func main() {
-	Taska := app.New()
-	mainWindow := Taska.NewWindow("Form Layout")
-
-	titleLabel := widget.NewLabel("Title:")
-	titleInput := widget.NewEntry()
-	descLabel := widget.NewLabel("Desc:")
-	descInput := widget.NewEntry()
-
-	tasks := make(map[uuid.UUID]*task.Task)
-
-	submit := widget.NewButton("Submit", func() {
-
+func SubmitNewTask(titleInput, descInput *widget.Entry) func() {
+	return func() {
 		t := task.New(titleInput.Text, descInput.Text)
 
 		jsonTask, err := json.Marshal(t)
@@ -44,11 +33,12 @@ func main() {
 			return
 		}
 		defer response.Body.Close()
-	})
+	}
+}
 
-	tasksContainer := container.NewVBox()
+func GetTasks(ctr *fyne.Container) func() {
+	return func() {
 
-	get := widget.NewButton("Get", func() {
 		response, err := http.Get("http://localhost:8080/tasks")
 		if err != nil {
 			fmt.Println("Error: ", err)
@@ -61,26 +51,48 @@ func main() {
 			fmt.Println("Error: ", err)
 		}
 
+		tasks := make(map[uuid.UUID]*task.Task)
 		if err := json.Unmarshal(data, &tasks); err != nil {
 			fmt.Println("Error: ", err)
 		}
 
-		tasksContainer.Objects = nil
+		ctr.Objects = nil
 
 		for id, task := range tasks {
-			tasksContainer.Add(container.NewHBox(widget.NewLabel(id.String()+": "), widget.NewLabel(task.Title)))
+			ctr.Add(container.NewHBox(widget.NewLabel(id.String()+": "), widget.NewLabel(task.Title)))
 
 		}
 
-		tasksContainer.Refresh()
-	})
+		ctr.Refresh()
+	}
+}
 
-	grid := container.New(layout.NewFormLayout(), titleLabel, titleInput, descLabel, descInput)
+func SetupWindowContent() *fyne.Container {
 
-	form := container.NewVBox(grid, submit, get, tasksContainer)
+	titleLabel := widget.NewLabel("Title:")
+	titleInput := widget.NewEntry()
+
+	descLabel := widget.NewLabel("Desc:")
+	descInput := widget.NewEntry()
+
+	submit := widget.NewButton("Submit", SubmitNewTask(titleInput, descInput))
+
+	tasksContainer := container.NewVBox()
+	get := widget.NewButton("Get", GetTasks(tasksContainer))
+
+	form := container.New(layout.NewFormLayout(), titleLabel, titleInput, descLabel, descInput)
+
+	return container.NewVBox(form, submit, get, tasksContainer)
+}
+
+func main() {
+	Taska := app.New()
+	mainWindow := Taska.NewWindow("Form Layout")
+
+	content := SetupWindowContent()
 
 	mainWindow.Resize(fyne.NewSize(600, 500))
-	mainWindow.SetContent(form)
+	mainWindow.SetContent(content)
 
 	mainWindow.ShowAndRun()
 }
