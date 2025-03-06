@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"errors"
 	"log"
 	"net"
@@ -8,9 +9,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/google/uuid"
-
 	"github.com/MrShanks/Taska/common/task"
+	"github.com/MrShanks/Taska/taskmgr/postgresdb"
 	"github.com/MrShanks/Taska/taskmgr/storage"
 	"github.com/MrShanks/Taska/utils"
 )
@@ -29,25 +29,34 @@ func NewServer(cfg *utils.Config, store task.Store) *http.Server {
 // Listen initialize the server and waits for requests
 func Listen(cfg *utils.Config) {
 
-	task1 := task.New("first", "Desc First")
-	task2 := task.New("second", "Desc Second")
-	task3 := task.New("third", "Desc Third")
+	// task1 := task.New("first", "Desc First")
+	// task2 := task.New("second", "Desc Second")
+	// task3 := task.New("third", "Desc Third")
 
-	tasks := map[uuid.UUID]*task.Task{
-		task1.ID: task1,
-		task2.ID: task2,
-		task3.ID: task3,
+	// tasks := map[uuid.UUID]*task.Task{
+	// 	task1.ID: task1,
+	// 	task2.ID: task2,
+	// 	task3.ID: task3,
+	// }
+	// IMD := storage.InMemoryDatabase{
+	// 	Tasks: tasks,
+	// }
+	var config postgresdb.Conf
+	var err error
+	DB := storage.PostgresDatabase{}
+
+	DB.Conn, err = postgresdb.Connect(&config)
+	if err != nil {
+		log.Printf("Not able to connect to the database: %v\n", err)
 	}
 
-	IMD := storage.InMemoryDatabase{
-		Tasks: tasks,
-	}
-
-	httpServer := NewServer(cfg, &IMD)
+	httpServer := NewServer(cfg, &DB)
+	defer DB.Conn.Close(context.Background())
 
 	log.Printf("Server version: %s listening at %s", cfg.Version, httpServer.Addr)
 
-	err := httpServer.ListenAndServe()
+	err = httpServer.ListenAndServe()
+
 	if errors.Is(err, http.ErrServerClosed) {
 		log.Println("Server closed")
 	} else if !errors.Is(err, nil) {

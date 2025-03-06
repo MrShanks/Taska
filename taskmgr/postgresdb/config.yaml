@@ -1,5 +1,2 @@
-HOSTNAMAE : localhost
-PORT : 5432
-USERNAME : taskauser
-PASSWORD : secure_password
-DATABASE : taskadb
+spec:
+  db_url: "postgres://%s:%s@%s:%s/%s"
