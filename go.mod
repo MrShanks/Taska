@@ -3,7 +3,6 @@ module github.com/MrShanks/Taska
 go 1.23.5
 
 require (
-	fyne.io/fyne v1.4.3
 	fyne.io/fyne/v2 v2.5.4
 	github.com/google/uuid v1.6.0
 	github.com/spf13/cobra v1.8.1
