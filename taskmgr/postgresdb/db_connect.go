@@ -15,7 +15,7 @@ type Conf struct {
 	} `yaml:"spec"`
 }
 
-func (c *Conf) getConf() *Conf {
+func (c *Conf) init() {
 	yamlFile, err := os.ReadFile("postgresdb/config.yaml")
 	if err != nil {
 		fmt.Printf("yamlFile get err: %v", err)
@@ -24,18 +24,12 @@ func (c *Conf) getConf() *Conf {
 	if err != nil {
 		fmt.Printf("Unmarshal: %v", err)
 	}
-	return c
-
 }
 
-func Connect(c *Conf) (*pgx.Conn, error) {
-
-	user := os.Getenv("POSTGRES_USER")
+func (c *Conf) Connect() (*pgx.Conn, error) {
 	password := os.Getenv("POSTGRES_PWD")
-	host := os.Getenv("POSTGRES_HOST")
-	port := os.Getenv("POSTGRES_PORT")
-	db := os.Getenv("DB")
-	dburl := fmt.Sprintf(c.getConf().Spec.Db_url, user, password, host, port, db)
+	c.init()
+	dburl := fmt.Sprintf(c.Spec.Db_url, password)
 
 	conn, err := pgx.Connect(context.Background(), dburl)
 	if err != nil {

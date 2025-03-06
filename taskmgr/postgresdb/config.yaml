@@ -1,2 +1,2 @@
 spec:
-  db_url: "postgres://%s:%s@%s:%s/%s"
+  db_url: "postgres://taskauser:%s@localhost:5432/taskadb"
