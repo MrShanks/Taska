@@ -6,6 +6,7 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/MrShanks/Taska/common/task"
@@ -30,9 +31,10 @@ func Listen(cfg *utils.Config) {
 	var err error
 	DB := storage.PostgresDatabase{}
 
-	DB.Conn, err = (&postgresdb.Conf{}).Connect()
+	DB.Conn, err = (&postgresdb.DbConnect{}).Connect()
 	if err != nil {
-		log.Printf("Not able to connect to the database: %v\n", err)
+		log.Printf("Not able to connect to the database with error: %v\n", err)
+		os.Exit(1)
 	}
 	defer DB.Conn.Close(context.Background())
 

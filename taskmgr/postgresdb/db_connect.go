@@ -9,13 +9,13 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-type Conf struct {
+type DbConnect struct {
 	Spec struct {
 		Db_url string `yaml:"db_url"`
 	} `yaml:"spec"`
 }
 
-func (c *Conf) init() {
+func (c *DbConnect) init() {
 	yamlFile, err := os.ReadFile("postgresdb/config.yaml")
 	if err != nil {
 		fmt.Printf("yamlFile get err: %v", err)
@@ -26,7 +26,7 @@ func (c *Conf) init() {
 	}
 }
 
-func (c *Conf) Connect() (*pgx.Conn, error) {
+func (c *DbConnect) Connect() (*pgx.Conn, error) {
 	password := os.Getenv("POSTGRES_PWD")
 	c.init()
 	dburl := fmt.Sprintf(c.Spec.Db_url, password)
