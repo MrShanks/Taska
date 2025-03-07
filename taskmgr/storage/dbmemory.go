@@ -57,12 +57,12 @@ func (db *PostgresDatabase) Delete(id string) error {
 	query := fmt.Sprintf("delete from tasks where id = '%s';", id)
 	del, err := db.Conn.Exec(context.Background(), query)
 	if err != nil {
-		log.Printf("Error deleting task with ID %v: %v", id, err)
+		log.Printf("Error deleting task with ID %v: %v\n", id, err)
 		return err
 	} else if del.String() == "DELETE 0" {
-		log.Printf("Task with ID %v does not exist", UUID)
+		log.Printf("Task with ID %v does not exist\n", UUID)
 		return fmt.Errorf("task with ID %v does not exist", UUID)
 	}
-	log.Printf("Task with ID: %v has been deleted", UUID)
+	log.Printf("Task with ID: %v has been deleted\n", UUID)
 	return nil
 }
