@@ -6,9 +6,19 @@ import (
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
-
-	"github.com/MrShanks/Taska/desktop/api"
 )
+
+func AddTaskToUI(tasksContainer *fyne.Container, title, desc string) {
+	taskCard := widget.NewCard(title, desc, nil)
+	taskCard.SetSubTitle(desc)
+
+	taskBox := container.NewVBox(
+		taskCard,
+		widget.NewSeparator(),
+	)
+
+	tasksContainer.Add(taskBox)
+}
 
 func createGUI() *fyne.Container {
 
@@ -26,11 +36,11 @@ func createGUI() *fyne.Container {
 		descInput)
 
 	tasksContainer := container.NewVBox()
-	api.GetTasks(tasksContainer)
+	GetTasks(tasksContainer)
 
 	submitBtn := widget.NewButton(
 		"Submit",
-		api.SubmitNewTask(titleInput, descInput, tasksContainer))
+		SubmitNewTask(titleInput, descInput, tasksContainer))
 
 	toolbar := widget.NewToolbar(widget.NewToolbarAction(theme.SearchIcon(), func() {}))
 
