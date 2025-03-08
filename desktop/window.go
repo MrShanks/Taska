@@ -6,15 +6,22 @@ import (
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
+
+	"github.com/google/uuid"
 )
 
-func AddTaskToUI(tasksContainer *fyne.Container, title, desc string) {
+func AddTaskToUI(tasksContainer *fyne.Container, title, desc string, id uuid.UUID) {
 	taskCard := widget.NewCard(title, "", nil)
 	descLabel := widget.NewLabel(desc)
 
+	deleteIcon := widget.NewButtonWithIcon("delete", theme.DeleteIcon(), DeleteTask(id, tasksContainer))
+	editIcon := widget.NewButtonWithIcon("edit", theme.DocumentIcon(), UpdateTask(id, tasksContainer))
+
+	descRow := container.NewHBox(descLabel, layout.NewSpacer(), editIcon, deleteIcon)
+
 	taskBox := container.NewVBox(
 		taskCard,
-		descLabel,
+		descRow,
 		widget.NewSeparator(),
 	)
 
@@ -43,7 +50,9 @@ func createGUI() *fyne.Container {
 		"Submit",
 		SubmitNewTask(titleInput, descInput, tasksContainer))
 
-	toolbar := widget.NewToolbar(widget.NewToolbarAction(theme.SearchIcon(), func() {}))
+	toolbar := widget.NewToolbar(widget.NewToolbarAction(theme.SearchIcon(), func() {
+		// TODO: implement search
+	}))
 
 	left := container.NewVBox(
 		container.NewPadded(form),
