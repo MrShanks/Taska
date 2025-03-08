@@ -99,5 +99,7 @@ func UpdateTask(id uuid.UUID, ctr *fyne.Container) func() {
 			fmt.Printf("Couldn't get a response from the server: %v\n", err)
 		}
 		defer response.Body.Close()
+
+		// TODO: finish function
 	}
 }
