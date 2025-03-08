@@ -1,4 +1,4 @@
-package api
+package main
 
 import (
 	"bytes"
@@ -8,7 +8,6 @@ import (
 	"net/http"
 
 	"fyne.io/fyne/v2"
-	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/widget"
 	"github.com/MrShanks/Taska/common/task"
 	"github.com/google/uuid"
@@ -56,9 +55,8 @@ func GetTasks(ctr *fyne.Container) {
 
 	ctr.Objects = nil
 
-	for id, task := range tasks {
-		ctr.Add(container.NewHBox(widget.NewLabel(id.String()+": "), widget.NewLabel(task.Title)))
-
+	for _, task := range tasks {
+		AddTaskToUI(ctr, task.Title, task.Desc)
 	}
 
 	ctr.Refresh()
