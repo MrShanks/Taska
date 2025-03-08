@@ -9,11 +9,12 @@ import (
 )
 
 func AddTaskToUI(tasksContainer *fyne.Container, title, desc string) {
-	taskCard := widget.NewCard(title, desc, nil)
-	taskCard.SetSubTitle(desc)
+	taskCard := widget.NewCard(title, "", nil)
+	descLabel := widget.NewLabel(desc)
 
 	taskBox := container.NewVBox(
 		taskCard,
+		descLabel,
 		widget.NewSeparator(),
 	)
 
