@@ -1,6 +1,8 @@
 package main
 
 import (
+	"os"
+
 	"github.com/MrShanks/Taska/taskmgr/server"
 	"github.com/MrShanks/Taska/utils"
 )
@@ -8,5 +10,8 @@ import (
 func main() {
 	cfg := utils.LoadConfig("config.yaml")
 
-	server.Listen(cfg)
+	err := server.Listen(cfg)
+	if err != nil {
+		os.Exit(1)
+	}
 }

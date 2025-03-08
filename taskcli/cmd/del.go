@@ -32,17 +32,17 @@ func delTask(taskcli *Taskcli, ctx context.Context, endpoint string) string {
 
 	request, err := http.NewRequestWithContext(ctx, "DELETE", taskcli.ServerURL.String(), nil)
 	if err != nil {
-		return fmt.Sprintf("Couldn't create request: %v\n", err)
+		return fmt.Sprintf("Couldn't create request: %v", err)
 	}
 
 	response, err := taskcli.HttpClient.Do(request)
 	if err != nil {
-		return fmt.Sprintf("Couldn't get a response from the server: %v\n", err)
+		return fmt.Sprintf("Couldn't get a response from the server: %v", err)
 	}
 	defer response.Body.Close()
 
 	if response.StatusCode == http.StatusNotFound {
-		return "Task not found\n"
+		return "Task not found"
 	}
 
 	if response.StatusCode == http.StatusBadRequest {

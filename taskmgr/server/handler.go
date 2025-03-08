@@ -55,7 +55,10 @@ func GetAllTasksHandler(store task.Store) http.HandlerFunc {
 
 		tasks := store.GetTasks()
 		if tasks == nil {
-			w.Write([]byte("Could't able to reach database"))
+			_, err := w.Write([]byte("Could't able to reach database"))
+			if err != nil {
+				log.Printf("Error: %v", err)
+			}
 			return
 		}
 		jsonTasks, err := json.Marshal(tasks)
@@ -96,7 +99,10 @@ func NewTaskHandler(store task.Store) http.HandlerFunc {
 		}
 		newTaskID := store.New(&newTask)
 		if newTaskID == uuid.Nil {
-			w.Write([]byte("Could't able to reach database"))
+			_, err := w.Write([]byte("Could't able to reach database"))
+			if err != nil {
+				log.Printf("Error: %v", err)
+			}
 			return
 		}
 
