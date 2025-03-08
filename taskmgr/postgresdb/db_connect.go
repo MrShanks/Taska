@@ -15,7 +15,7 @@ type DbConnect struct {
 	} `yaml:"spec"`
 }
 
-func (c *DbConnect) init() {
+func (c *DbConnect) Init() {
 	yamlFile, err := os.ReadFile("postgresdb/config.yaml")
 	if err != nil {
 		fmt.Printf("yamlFile get err: %v", err)
@@ -28,7 +28,6 @@ func (c *DbConnect) init() {
 
 func (c *DbConnect) Connect() (*pgx.Conn, error) {
 	password := os.Getenv("POSTGRES_PWD")
-	c.init()
 	dburl := fmt.Sprintf(c.Spec.Db_url, password)
 
 	conn, err := pgx.Connect(context.Background(), dburl)

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"os"
 
 	"github.com/MrShanks/Taska/taskmgr/server"
@@ -12,6 +13,7 @@ func main() {
 
 	err := server.Listen(cfg)
 	if err != nil {
+		log.Printf("Error starting server: %v", err)
 		os.Exit(1)
 	}
 }

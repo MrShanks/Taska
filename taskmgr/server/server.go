@@ -29,10 +29,10 @@ func NewServer(cfg *utils.Config, store task.Store) *http.Server {
 func Listen(cfg *utils.Config) error {
 	var err error
 	DB := storage.PostgresDatabase{}
-
-	DB.Conn, err = (&postgresdb.DbConnect{}).Connect()
+	dbConnection := postgresdb.DbConnect{}
+	dbConnection.Init()
+	DB.Conn, err = dbConnection.Connect()
 	if err != nil {
-		log.Printf("Not able to connect to the database with error: %v\n", err)
 		return err
 	}
 	defer DB.Conn.Close(context.Background())
@@ -42,10 +42,8 @@ func Listen(cfg *utils.Config) error {
 
 	err = httpServer.ListenAndServe()
 	if errors.Is(err, http.ErrServerClosed) {
-		log.Println("Server closed")
 		return err
 	} else if !errors.Is(err, nil) {
-		log.Printf("error starting server: %s\n", err)
 		return err
 	}
 	return nil
