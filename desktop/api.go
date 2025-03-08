@@ -56,8 +56,48 @@ func GetTasks(ctr *fyne.Container) {
 	ctr.Objects = nil
 
 	for _, task := range tasks {
-		AddTaskToUI(ctr, task.Title, task.Desc)
+		AddTaskToUI(ctr, task.Title, task.Desc, task.ID)
 	}
 
 	ctr.Refresh()
+}
+
+func DeleteTask(id uuid.UUID, ctr *fyne.Container) func() {
+	return func() {
+		request, err := http.NewRequest("DELETE", fmt.Sprintf("http://localhost:8080/delete/{%s}", id.String()), nil)
+		if err != nil {
+			fmt.Println("Error: ", err)
+		}
+
+		client := http.Client{}
+
+		response, err := client.Do(request)
+		if err != nil {
+			fmt.Printf("Couldn't get a response from the server: %v\n", err)
+		}
+		defer response.Body.Close()
+
+		if response.StatusCode == http.StatusNotFound {
+			fmt.Println("Task not found")
+		}
+
+		GetTasks(ctr)
+	}
+}
+
+func UpdateTask(id uuid.UUID, ctr *fyne.Container) func() {
+	return func() {
+		request, err := http.NewRequest("PUT", fmt.Sprintf("http://localhost:8080/update/{%s}", id.String()), nil)
+		if err != nil {
+			fmt.Println("Error: ", err)
+		}
+
+		client := http.Client{}
+
+		response, err := client.Do(request)
+		if err != nil {
+			fmt.Printf("Couldn't get a response from the server: %v\n", err)
+		}
+		defer response.Body.Close()
+	}
 }

@@ -25,7 +25,7 @@ func (t *taskaLayout) Layout(_ []fyne.CanvasObject, size fyne.Size) {
 	t.left.Resize(fyne.NewSize(sideWidth, size.Height-topHeight))
 
 	t.content.Move(fyne.NewPos(sideWidth, topHeight))
-	t.content.Resize(fyne.NewSize(size.Width-sideWidth*2, size.Height-topHeight))
+	t.content.Resize(fyne.NewSize(size.Width-sideWidth, size.Height-topHeight))
 
 	t.dividers[0].Move(fyne.NewPos(0, topHeight))
 	t.dividers[0].Resize(fyne.NewSize(size.Width, theme.SeparatorThicknessSize()))
