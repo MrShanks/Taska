@@ -6,7 +6,6 @@ import (
 	"log"
 	"net"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/MrShanks/Taska/common/task"
@@ -27,14 +26,14 @@ func NewServer(cfg *utils.Config, store task.Store) *http.Server {
 }
 
 // Listen initialize the server and waits for requests
-func Listen(cfg *utils.Config) {
+func Listen(cfg *utils.Config) error {
 	var err error
 	DB := storage.PostgresDatabase{}
 
 	DB.Conn, err = (&postgresdb.DbConnect{}).Connect()
 	if err != nil {
 		log.Printf("Not able to connect to the database with error: %v\n", err)
-		os.Exit(1)
+		return err
 	}
 	defer DB.Conn.Close(context.Background())
 
@@ -44,8 +43,10 @@ func Listen(cfg *utils.Config) {
 	err = httpServer.ListenAndServe()
 	if errors.Is(err, http.ErrServerClosed) {
 		log.Println("Server closed")
+		return err
 	} else if !errors.Is(err, nil) {
 		log.Printf("error starting server: %s\n", err)
-		// os.Exit(1)
+		return err
 	}
+	return nil
 }

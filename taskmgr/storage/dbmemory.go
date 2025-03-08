@@ -44,6 +44,7 @@ func (db *PostgresDatabase) GetTasks() map[uuid.UUID]*task.Task {
 func (db *PostgresDatabase) New(task *task.Task) uuid.UUID {
 	task.ID = uuid.New()
 	query := fmt.Sprintf("insert into tasks (id, title, description) values ('%s', '%s', '%s');", task.ID, task.Title, task.Desc)
+
 	_, err := db.Conn.Exec(context.Background(), query)
 	if err != nil {
 		log.Printf("%v", err)
@@ -55,6 +56,7 @@ func (db *PostgresDatabase) New(task *task.Task) uuid.UUID {
 func (db *PostgresDatabase) Delete(id string) error {
 	UUID := uuid.MustParse(id)
 	query := fmt.Sprintf("delete from tasks where id = '%s';", id)
+
 	del, err := db.Conn.Exec(context.Background(), query)
 	if err != nil {
 		log.Printf("Error deleting task with ID %v: %v\n", id, err)
