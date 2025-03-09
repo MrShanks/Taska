@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -24,19 +25,34 @@ func SubmitNewTask(titleInput, descInput *widget.Entry, ctr *fyne.Container) fun
 
 		data := bytes.NewBuffer(jsonTask)
 
-		response, err := http.Post("http://localhost:8080/new", "application/json", data)
+		request, err := http.NewRequestWithContext(context.Background(), "POST", "http://localhost:8080/new", data)
 		if err != nil {
 			fmt.Println("Error: ", err)
 			return
 		}
-		defer response.Body.Close()
+
+		client := http.Client{}
+
+		response, err := client.Do(request)
+		if err != nil {
+			fmt.Println("Error: ", err)
+			return
+		}
+		response.Body.Close()
 
 		GetTasks(ctr)
 	}
 }
 
 func GetTasks(ctr *fyne.Container) {
-	response, err := http.Get("http://localhost:8080/tasks")
+	request, err := http.NewRequestWithContext(context.Background(), "GET", "http://localhost:8080/tasks", nil)
+	if err != nil {
+		fmt.Println("Error: ", err)
+		return
+	}
+
+	client := http.Client{}
+	response, err := client.Do(request)
 	if err != nil {
 		fmt.Println("Error: ", err)
 		return
@@ -64,7 +80,7 @@ func GetTasks(ctr *fyne.Container) {
 
 func DeleteTask(id uuid.UUID, ctr *fyne.Container) func() {
 	return func() {
-		request, err := http.NewRequest("DELETE", fmt.Sprintf("http://localhost:8080/delete/{%s}", id.String()), nil)
+		request, err := http.NewRequestWithContext(context.Background(), "DELETE", fmt.Sprintf("http://localhost:8080/delete/{%s}", id.String()), nil)
 		if err != nil {
 			fmt.Println("Error: ", err)
 		}
@@ -87,7 +103,7 @@ func DeleteTask(id uuid.UUID, ctr *fyne.Container) func() {
 
 func UpdateTask(id uuid.UUID, ctr *fyne.Container) func() {
 	return func() {
-		request, err := http.NewRequest("PUT", fmt.Sprintf("http://localhost:8080/update/{%s}", id.String()), nil)
+		request, err := http.NewRequestWithContext(context.Background(), "PUT", fmt.Sprintf("http://localhost:8080/update/{%s}", id.String()), nil)
 		if err != nil {
 			fmt.Println("Error: ", err)
 		}
