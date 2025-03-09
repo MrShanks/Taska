@@ -15,6 +15,9 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: stable
+      
+      - name: Install Dependencies for CGo (Linux)
+        run: sudo apt-get update && sudo apt-get install -y xorg-dev libgl1-mesa-dev
 
       - name: Install dependencies
         run: go mod tidy
