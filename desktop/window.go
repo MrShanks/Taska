@@ -15,7 +15,7 @@ func AddTaskToUI(tasksContainer *fyne.Container, title, desc string, id uuid.UUI
 	descLabel := widget.NewLabel(desc)
 
 	deleteIcon := widget.NewButtonWithIcon("delete", theme.DeleteIcon(), DeleteTask(id, tasksContainer))
-	editIcon := widget.NewButtonWithIcon("edit", theme.DocumentIcon(), UpdateTask(id, tasksContainer))
+	editIcon := widget.NewButtonWithIcon("edit", theme.DocumentIcon(), UpdateTask(id, tasksContainer, title, desc))
 
 	descRow := container.NewHBox(descLabel, layout.NewSpacer(), editIcon, deleteIcon)
 

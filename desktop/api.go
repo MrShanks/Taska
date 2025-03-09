@@ -9,6 +9,8 @@ import (
 	"net/http"
 
 	"fyne.io/fyne/v2"
+	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 	"github.com/MrShanks/Taska/common/task"
 	"github.com/google/uuid"
@@ -80,7 +82,7 @@ func GetTasks(ctr *fyne.Container) {
 
 func DeleteTask(id uuid.UUID, ctr *fyne.Container) func() {
 	return func() {
-		request, err := http.NewRequestWithContext(context.Background(), "DELETE", fmt.Sprintf("http://localhost:8080/delete/{%s}", id.String()), nil)
+		request, err := http.NewRequestWithContext(context.Background(), "DELETE", fmt.Sprintf("http://localhost:8080/delete/%s", id.String()), nil)
 		if err != nil {
 			fmt.Println("Error: ", err)
 		}
@@ -101,21 +103,40 @@ func DeleteTask(id uuid.UUID, ctr *fyne.Container) func() {
 	}
 }
 
-func UpdateTask(id uuid.UUID, ctr *fyne.Container) func() {
+func UpdateTask(id uuid.UUID, ctr *fyne.Container, oldTitle, oldDesc string) func() {
 	return func() {
-		request, err := http.NewRequestWithContext(context.Background(), "PUT", fmt.Sprintf("http://localhost:8080/update/{%s}", id.String()), nil)
-		if err != nil {
-			fmt.Println("Error: ", err)
-		}
+		editWindow := fyne.CurrentApp().NewWindow("Edit")
 
-		client := http.Client{}
+		newTitle := widget.NewEntry()
+		newTitle.SetPlaceHolder(oldTitle)
+		newDesc := widget.NewMultiLineEntry()
+		newDesc.SetPlaceHolder(oldDesc)
 
-		response, err := client.Do(request)
-		if err != nil {
-			fmt.Printf("Couldn't get a response from the server: %v\n", err)
-		}
-		defer response.Body.Close()
+		submitBtn := widget.NewButtonWithIcon("", theme.MailSendIcon(), func() {
+			body := &bytes.Buffer{}
+			body.Write(fmt.Appendf(nil, `{"title":"%s","desc":"%s"}`, newTitle.Text, newDesc.Text))
 
-		// TODO: finish function
+			request, err := http.NewRequestWithContext(context.Background(), "PUT", fmt.Sprintf("http://localhost:8080/update/%s", id.String()), body)
+			if err != nil {
+				fmt.Println("Error: ", err)
+			}
+
+			client := http.Client{}
+
+			response, err := client.Do(request)
+			if err != nil {
+				fmt.Printf("Couldn't get a response from the server: %v\n", err)
+			}
+			defer response.Body.Close()
+
+			editWindow.Close()
+			GetTasks(ctr)
+		})
+
+		editWindow.SetContent(container.NewVBox(newTitle, newDesc, submitBtn))
+
+		editWindow.Resize(fyne.NewSize(400, 200))
+
+		editWindow.Show()
 	}
 }
