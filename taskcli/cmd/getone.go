@@ -73,33 +73,12 @@ func GetTaskUUIDs(taskcli *Taskcli, ctx context.Context, endpoint string) []stri
 }
 
 func FetchOne(taskcli *Taskcli, ctx context.Context, endpoint string) *task.Task {
-	taskcli.ServerURL.Path = endpoint
-	fmt.Println(taskcli.ServerURL.String())
-
-	request, err := http.NewRequestWithContext(ctx, "GET", taskcli.ServerURL.String(), nil)
+	var t task.Task
+	err := fetch(taskcli, ctx, endpoint, &t)
 	if err != nil {
-		log.Printf("Couldn't create request: %v", err)
+		return nil
 	}
-
-	response, err := taskcli.HttpClient.Do(request)
-	if err != nil {
-		log.Printf("Couldn't get a response from the server: %v", err)
-	}
-
-	data, err := io.ReadAll(response.Body)
-	if err != nil {
-		log.Printf("Couldn't read response body: %v", err)
-	}
-	defer response.Body.Close()
-
-	var t *task.Task
-
-	err = json.Unmarshal(data, &t)
-	if err != nil {
-		log.Printf("couldn't unmarshal: %v", err)
-	}
-
-	return t
+	return &t
 }
 
 func init() {
