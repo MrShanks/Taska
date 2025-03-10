@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"reflect"
 	"testing"
 
 	"github.com/MrShanks/Taska/common/task"
@@ -21,7 +22,7 @@ func TestFetchTasks(t *testing.T) {
 
 		mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusOK)
-			_, err := w.Write([]byte(jsonTask))
+			_, err := w.Write(jsonTask)
 			if err != nil {
 				t.Errorf("couldn't write the response")
 			}
@@ -39,11 +40,10 @@ func TestFetchTasks(t *testing.T) {
 		}
 
 		got := FetchTasks(mockClient, context.Background(), "/tasks")
-		want := string(jsonTask)
+		want := jsonTask
 
-		if got != want {
+		if reflect.DeepEqual(got, want) {
 			t.Errorf("got %v, want %v", got, want)
 		}
-
 	})
 }
