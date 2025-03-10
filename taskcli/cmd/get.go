@@ -4,9 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
 	"log"
-	"net/http"
 	"os"
 
 	"github.com/MrShanks/Taska/common/task"
@@ -54,7 +52,7 @@ var getCmd = &cobra.Command{
 		output, err := json.Marshal(data)
 		cobra.CheckErr(err)
 
-		cmd.Printf(fmt.Sprintf("%s\n", string(output)))
+		cmd.Printf("%s\n", string(output))
 	},
 }
 
@@ -77,29 +75,12 @@ func dumpOnFile(filepath, format string, data []byte) {
 }
 
 func FetchTasks(taskcli *Taskcli, ctx context.Context, endpoint string) map[uuid.UUID]*task.Task {
-	taskcli.ServerURL.Path = endpoint
+	tasks := make(map[uuid.UUID]*task.Task)
 
-	request, err := http.NewRequestWithContext(ctx, "GET", taskcli.ServerURL.String(), nil)
+	err := fetch(taskcli, ctx, endpoint, &tasks)
 	if err != nil {
-		log.Printf("Couldn't create request: %v", err)
-	}
-
-	response, err := taskcli.HttpClient.Do(request)
-	if err != nil {
-		log.Printf("Couldn't get a response from the server: %v", err)
-	}
-
-	data, err := io.ReadAll(response.Body)
-	if err != nil {
-		log.Printf("Couldn't read response body: %v", err)
-	}
-	defer response.Body.Close()
-
-	var tasks map[uuid.UUID]*task.Task
-
-	err = json.Unmarshal(data, &tasks)
-	if err != nil {
-		log.Printf("couldn't unmarshal: %v", err)
+		log.Printf("Error fetching tasks: %v", err)
+		return nil
 	}
 
 	return tasks

@@ -1,7 +1,11 @@
 package cmd
 
 import (
+	"context"
+	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
 	"os"
 	"os/exec"
 	"strings"
@@ -73,4 +77,31 @@ func getFlags(cmd *cobra.Command, required int) (string, string, error) {
 	}
 
 	return title, desc, nil
+}
+
+func fetch(taskcli *Taskcli, ctx context.Context, endpoint string, result any) error {
+	taskcli.ServerURL.Path = endpoint
+
+	request, err := http.NewRequestWithContext(ctx, "GET", taskcli.ServerURL.String(), nil)
+	if err != nil {
+		return fmt.Errorf("Couldn't create request: %v", err)
+	}
+
+	response, err := taskcli.HttpClient.Do(request)
+	if err != nil {
+		return fmt.Errorf("Couldn't get a response from the server: %v", err)
+	}
+	defer response.Body.Close()
+
+	data, err := io.ReadAll(response.Body)
+	if err != nil {
+		return fmt.Errorf("Couldn't read response body: %v", err)
+	}
+
+	err = json.Unmarshal(data, result)
+	if err != nil {
+		return fmt.Errorf("Couldn't unmarshal: %v", err)
+	}
+
+	return nil
 }

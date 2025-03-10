@@ -10,6 +10,40 @@ import (
 	"github.com/MrShanks/Taska/common/task"
 )
 
+func GetOneTaskHandler(store task.Store) func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet {
+			log.Printf("Method: %s is not allowed on /task endpoint\n", r.Method)
+
+			w.WriteHeader(http.StatusMethodNotAllowed)
+			return
+		}
+
+		log.Printf("Got request on /task endpoint\n")
+
+		taskID := strings.Split(r.URL.Path, "/")[2]
+
+		selectedTask, err := store.GetOne(taskID)
+		if err != nil {
+			log.Printf("Couldn't retrieve task from store: %v\n", err)
+		}
+
+		jsonTask, err := json.Marshal(selectedTask)
+		if err != nil {
+			log.Printf("Couldn't Marshal tasks into json format: %v", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		_, err = w.Write(jsonTask)
+		if err != nil {
+			log.Printf("Couldn't write response: %v", err)
+		}
+	}
+}
+
 func GetAllTasksHandler(store task.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := isAllowedMethod(http.MethodGet, w, r); err != nil {
