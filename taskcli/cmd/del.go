@@ -45,6 +45,10 @@ func delTask(taskcli *Taskcli, ctx context.Context, endpoint string) string {
 		return "Task not found"
 	}
 
+	if response.StatusCode == http.StatusBadRequest {
+		return "Uuid not valid"
+	}
+
 	return "Task Successfully deleted"
 }
 
