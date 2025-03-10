@@ -28,7 +28,6 @@ func populateToolbar() *widget.Toolbar {
 }
 
 func populateLeftContainer(tasks *fyne.Container) *fyne.Container {
-
 	form := createTaskForm(tasks)
 
 	leftContainer := container.NewVBox(
@@ -74,7 +73,6 @@ func createTaskForm(tasks *fyne.Container) *fyne.Container {
 }
 
 func createGUI() *fyne.Container {
-
 	toolbar := populateToolbar()
 
 	mainContent := populateMainContent()
