@@ -108,9 +108,9 @@ func UpdateTask(id uuid.UUID, ctr *fyne.Container, oldTitle, oldDesc string) fun
 		editWindow := fyne.CurrentApp().NewWindow("Edit")
 
 		newTitle := widget.NewEntry()
-		newTitle.SetPlaceHolder(oldTitle)
+		newTitle.SetText(oldTitle)
 		newDesc := widget.NewMultiLineEntry()
-		newDesc.SetPlaceHolder(oldDesc)
+		newDesc.SetText(oldDesc)
 
 		submitBtn := widget.NewButtonWithIcon("", theme.MailSendIcon(), func() {
 			body := &bytes.Buffer{}
