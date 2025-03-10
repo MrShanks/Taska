@@ -7,12 +7,14 @@ import (
 
 func StartUp() {
 	Taska := app.New()
+
 	main := Taska.NewWindow("Taska")
 
 	main.Resize(fyne.NewSize(1024, 768))
 
 	main.SetContent(createGUI())
 	main.SetMaster()
+
 	main.ShowAndRun()
 }
 

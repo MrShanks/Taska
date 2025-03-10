@@ -5,7 +5,7 @@ import (
 	"fyne.io/fyne/v2/theme"
 )
 
-const sideWidth = 220
+const sideWidth = 280
 
 type taskaLayout struct {
 	top, left, content fyne.CanvasObject
@@ -19,7 +19,7 @@ func newTaskaLayout(top, left, content fyne.CanvasObject, dividers [2]fyne.Canva
 func (t *taskaLayout) Layout(_ []fyne.CanvasObject, size fyne.Size) {
 	topHeight := t.top.MinSize().Height
 
-	t.top.Resize(fyne.NewSize(sideWidth, topHeight))
+	t.top.Resize(fyne.NewSize(size.Width, topHeight))
 
 	t.left.Move(fyne.NewPos(0, topHeight))
 	t.left.Resize(fyne.NewSize(sideWidth, size.Height-topHeight))
