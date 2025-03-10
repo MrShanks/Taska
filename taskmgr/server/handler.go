@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/MrShanks/Taska/common/task"
+	"github.com/google/uuid"
 )
 
 func GetAllTasksHandler(store task.Store) http.HandlerFunc {
@@ -18,7 +19,15 @@ func GetAllTasksHandler(store task.Store) http.HandlerFunc {
 
 		log.Printf("Got request on /tasks endpoint\n")
 
-		jsonTasks, err := json.Marshal(store.GetTasks())
+		tasks := store.GetTasks()
+		if tasks == nil {
+			_, err := w.Write([]byte("Could't able to reach database"))
+			if err != nil {
+				log.Printf("Error: %v", err)
+			}
+			return
+		}
+		jsonTasks, err := json.Marshal(tasks)
 		if err != nil {
 			log.Printf("Couldn't Marshal tasks into json format: %v", err)
 			w.WriteHeader(http.StatusInternalServerError)
@@ -55,6 +64,13 @@ func NewTaskHandler(store task.Store) http.HandlerFunc {
 			return
 		}
 		newTaskID := store.New(&newTask)
+		if newTaskID == uuid.Nil {
+			_, err := w.Write([]byte("Could't able to reach database"))
+			if err != nil {
+				log.Printf("Error: %v", err)
+			}
+			return
+		}
 
 		log.Printf("New task created. ID: %s", newTaskID)
 
