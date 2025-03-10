@@ -109,13 +109,13 @@ func NewTaskHandler(store task.Store) http.HandlerFunc {
 
 		log.Printf("New task created. ID: %s", newTaskID)
 
-		EventLogger.WriteNew(newTask.ID, newTask.Title, newTask.Desc)
-
 		w.WriteHeader(http.StatusCreated)
 		_, err = w.Write([]byte(newTaskID.String()))
 		if err != nil {
 			log.Printf("Couldn't write response: %v", err)
 		}
+
+		EventLogger.WriteNew(newTask.ID, newTask.Title, newTask.Desc)
 	}
 }
 
@@ -163,6 +163,8 @@ func UpdateTaskHandler(store task.Store) func(http.ResponseWriter, *http.Request
 		if err != nil {
 			log.Printf("Couldn't write response: %v", err)
 		}
+
+		EventLogger.WriteMod(updatedTask.ID, updatedTask.Title, updatedTask.Desc)
 	}
 }
 
@@ -184,6 +186,7 @@ func DeleteTaskHandler(store task.Store) http.HandlerFunc {
 		}
 
 		w.WriteHeader(http.StatusAccepted)
+
 		EventLogger.WriteDel(uuid.MustParse(taskID))
 	}
 }
