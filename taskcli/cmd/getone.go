@@ -27,7 +27,7 @@ var getOneCmd = &cobra.Command{
 		outJson, err := json.Marshal(output)
 		cobra.CheckErr(err)
 
-		cmd.Printf(string(outJson))
+		cmd.Printf("%v\n", string(outJson))
 	},
 }
 
@@ -74,10 +74,13 @@ func GetTaskUUIDs(taskcli *Taskcli, ctx context.Context, endpoint string) []stri
 
 func FetchOne(taskcli *Taskcli, ctx context.Context, endpoint string) *task.Task {
 	var t task.Task
+
 	err := fetch(taskcli, ctx, endpoint, &t)
 	if err != nil {
+		log.Printf("Error fetching task: %b", err)
 		return nil
 	}
+
 	return &t
 }
 

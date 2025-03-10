@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"os"
 	"os/exec"
@@ -85,27 +84,23 @@ func fetch(taskcli *Taskcli, ctx context.Context, endpoint string, result any) e
 
 	request, err := http.NewRequestWithContext(ctx, "GET", taskcli.ServerURL.String(), nil)
 	if err != nil {
-		log.Printf("Couldn't create request: %v", err)
-		return err
+		return fmt.Errorf("Couldn't create request: %v", err)
 	}
 
 	response, err := taskcli.HttpClient.Do(request)
 	if err != nil {
-		log.Printf("Couldn't get a response from the server: %v", err)
-		return err
+		return fmt.Errorf("Couldn't get a response from the server: %v", err)
 	}
 	defer response.Body.Close()
 
 	data, err := io.ReadAll(response.Body)
 	if err != nil {
-		log.Printf("Couldn't read response body: %v", err)
-		return err
+		return fmt.Errorf("Couldn't read response body: %v", err)
 	}
 
 	err = json.Unmarshal(data, result)
 	if err != nil {
-		log.Printf("Couldn't unmarshal: %v", err)
-		return err
+		return fmt.Errorf("Couldn't unmarshal: %v", err)
 	}
 
 	return nil

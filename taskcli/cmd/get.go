@@ -76,10 +76,13 @@ func dumpOnFile(filepath, format string, data []byte) {
 
 func FetchTasks(taskcli *Taskcli, ctx context.Context, endpoint string) map[uuid.UUID]*task.Task {
 	tasks := make(map[uuid.UUID]*task.Task)
+
 	err := fetch(taskcli, ctx, endpoint, &tasks)
 	if err != nil {
+		log.Printf("Error fetching tasks: %v", err)
 		return nil
 	}
+
 	return tasks
 }
 
