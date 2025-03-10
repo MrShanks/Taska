@@ -112,13 +112,13 @@ func NewTaskHandler(taskStore task.Store, authorStore author.Store) http.Handler
 
 		log.Printf("New task created with ID: %s", newTaskID)
 
-		EventLogger.WriteNew(newTask.ID, newTask.Title, newTask.Desc)
-
 		w.WriteHeader(http.StatusCreated)
 		_, err = w.Write([]byte(newTaskID.String()))
 		if err != nil {
 			log.Printf("Couldn't write response: %v", err)
 		}
+
+		EventLogger.WriteNew(newTask.ID, newTask.Title, newTask.Desc)
 	}
 }
 
@@ -163,6 +163,8 @@ func UpdateTaskHandler(taskStore task.Store, authorStore author.Store) http.Hand
 		if err != nil {
 			log.Printf("Couldn't write response: %v", err)
 		}
+
+		EventLogger.WriteMod(updatedTask.ID, updatedTask.Title, updatedTask.Desc)
 	}
 }
 
@@ -182,6 +184,7 @@ func DeleteTaskHandler(taskStore task.Store, authorStore author.Store) http.Hand
 		}
 
 		w.WriteHeader(http.StatusAccepted)
+
 		EventLogger.WriteDel(uuid.MustParse(taskID))
 	}
 }
