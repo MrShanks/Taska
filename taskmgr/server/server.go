@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/MrShanks/Taska/common/task"
-	"github.com/MrShanks/Taska/taskmgr/postgresdb"
 	"github.com/MrShanks/Taska/taskmgr/storage"
 	"github.com/MrShanks/Taska/utils"
 )
@@ -29,9 +28,8 @@ func NewServer(cfg *utils.Config, store task.Store) *http.Server {
 func Listen(cfg *utils.Config) error {
 	var err error
 	DB := storage.PostgresDatabase{}
-	dbConnection := postgresdb.DbConnect{}
-	dbConnection.Init()
-	DB.Conn, err = dbConnection.Connect()
+
+	err = DB.Connect(cfg.Spec.DB_URL)
 	if err != nil {
 		return err
 	}

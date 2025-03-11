@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -15,16 +16,27 @@ type PostgresDatabase struct {
 	Conn *pgx.Conn
 }
 
+func (db *PostgresDatabase) Connect(db_url string) error {
+	password := os.Getenv("POSTGRES_PWD")
+	dburl := fmt.Sprintf(db_url, password)
+	var err error
+	db.Conn, err = pgx.Connect(context.Background(), dburl)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (db *PostgresDatabase) GetOne(id string) (*task.Task, error) {
 	query := fmt.Sprintf("select * from tasks where id = '%s';", id)
 
 	t := task.Task{}
 
-	err := db.Conn.QueryRow(context.Background(), query).Scan(&t.ID, &t.Title, &t.Desc)
-	if err != nil {
-		return nil, err
+	row := db.Conn.QueryRow(context.Background(), query).Scan(&t.ID, &t.Title, &t.Desc)
+	if row == pgx.ErrNoRows {
+		return nil, fmt.Errorf("task not found")
 	}
-
+	fmt.Printf("%v", t)
 	return &t, nil
 }
 

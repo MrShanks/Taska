@@ -1,2 +1,0 @@
-spec:
-  db_url: "postgres://taskauser:%s@localhost:5432/taskadb"

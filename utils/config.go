@@ -12,8 +12,9 @@ type Config struct {
 	Description string `yaml:"description"`
 	Version     string `yaml:"version"`
 	Spec        struct {
-		Host string `yaml:"host"`
-		Port string `yaml:"port"`
+		Host   string `yaml:"host"`
+		Port   string `yaml:"port"`
+		DB_URL string `yaml:"db_url"`
 	} `yaml:"spec"`
 }
 

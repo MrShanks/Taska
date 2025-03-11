@@ -4,12 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/MrShanks/Taska/common/task"
-	"github.com/google/uuid"
-	"github.com/spf13/cobra"
 	"io"
 	"log"
 	"net/http"
+
+	"github.com/MrShanks/Taska/common/task"
+	"github.com/google/uuid"
+	"github.com/spf13/cobra"
 )
 
 var getOneCmd = &cobra.Command{
@@ -77,7 +78,7 @@ func FetchOne(taskcli *Taskcli, ctx context.Context, endpoint string) *task.Task
 
 	err := fetch(taskcli, ctx, endpoint, &t)
 	if err != nil {
-		log.Printf("Error fetching task: %b", err)
+		log.Printf("Error fetching task: %v", err)
 		return nil
 	}
 

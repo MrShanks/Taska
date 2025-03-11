@@ -27,6 +27,8 @@ func GetOneTaskHandler(store task.Store) func(http.ResponseWriter, *http.Request
 		selectedTask, err := store.GetOne(taskID)
 		if err != nil {
 			log.Printf("Couldn't retrieve task from store: %v\n", err)
+			w.WriteHeader(http.StatusNotFound)
+			return
 		}
 
 		jsonTask, err := json.Marshal(selectedTask)
