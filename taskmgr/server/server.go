@@ -1,14 +1,12 @@
 package server
 
 import (
+	"context"
 	"errors"
 	"log"
 	"net"
 	"net/http"
-	"os"
 	"time"
-
-	"github.com/google/uuid"
 
 	"github.com/MrShanks/Taska/common/task"
 	"github.com/MrShanks/Taska/taskmgr/storage"
@@ -27,31 +25,24 @@ func NewServer(cfg *utils.Config, store task.Store) *http.Server {
 }
 
 // Listen initialize the server and waits for requests
-func Listen(cfg *utils.Config) {
+func Listen(cfg *utils.Config) error {
+	var err error
+	DB := storage.PostgresDatabase{}
 
-	task1 := task.New("first", "Desc First")
-	task2 := task.New("second", "Desc Second")
-	task3 := task.New("third", "Desc Third")
-
-	tasks := map[uuid.UUID]*task.Task{
-		task1.ID: task1,
-		task2.ID: task2,
-		task3.ID: task3,
+	err = DB.Connect(cfg.Spec.DB_URL)
+	if err != nil {
+		return err
 	}
+	defer DB.Conn.Close(context.Background())
 
-	IMD := storage.InMemoryDatabase{
-		Tasks: tasks,
-	}
-
-	httpServer := NewServer(cfg, &IMD)
-
+	httpServer := NewServer(cfg, &DB)
 	log.Printf("Server version: %s listening at %s", cfg.Version, httpServer.Addr)
 
-	err := httpServer.ListenAndServe()
+	err = httpServer.ListenAndServe()
 	if errors.Is(err, http.ErrServerClosed) {
-		log.Println("Server closed")
+		return err
 	} else if !errors.Is(err, nil) {
-		log.Printf("error starting server: %s\n", err)
-		os.Exit(1)
+		return err
 	}
+	return nil
 }

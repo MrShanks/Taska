@@ -92,7 +92,9 @@ func fetch(taskcli *Taskcli, ctx context.Context, endpoint string, result any) e
 		return fmt.Errorf("Couldn't get a response from the server: %v", err)
 	}
 	defer response.Body.Close()
-
+	if response.StatusCode != http.StatusOK {
+		return fmt.Errorf("task not found, status code: %v", response.StatusCode)
+	}
 	data, err := io.ReadAll(response.Body)
 	if err != nil {
 		return fmt.Errorf("Couldn't read response body: %v", err)
