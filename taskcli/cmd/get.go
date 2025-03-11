@@ -8,7 +8,6 @@ import (
 	"os"
 
 	"github.com/MrShanks/Taska/common/task"
-	"github.com/google/uuid"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
 )
@@ -74,8 +73,8 @@ func dumpOnFile(filepath, format string, data []byte) {
 	log.Printf("file created: %s.%s", "export", format)
 }
 
-func FetchTasks(taskcli *Taskcli, ctx context.Context, endpoint string) map[uuid.UUID]*task.Task {
-	tasks := make(map[uuid.UUID]*task.Task)
+func FetchTasks(taskcli *Taskcli, ctx context.Context, endpoint string) []*task.Task {
+	var tasks []*task.Task
 
 	err := fetch(taskcli, ctx, endpoint, &tasks)
 	if err != nil {

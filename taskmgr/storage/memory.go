@@ -28,8 +28,14 @@ func (imd *InMemoryDatabase) GetOne(id string) (*task.Task, error) {
 	return t, nil
 }
 
-func (imd *InMemoryDatabase) GetTasks() map[uuid.UUID]*task.Task {
-	return imd.Tasks
+func (imd *InMemoryDatabase) GetTasks() []*task.Task {
+	var tasks []*task.Task
+
+	for _, val := range imd.Tasks {
+		tasks = append(tasks, val)
+	}
+
+	return tasks
 }
 
 func (imd *InMemoryDatabase) New(task *task.Task) uuid.UUID {
@@ -47,6 +53,7 @@ func (imd *InMemoryDatabase) Update(id, title, desc string) (*task.Task, error) 
 	if _, ok := imd.Tasks[taskID]; !ok {
 		return nil, fmt.Errorf("task not found")
 	}
+
 	updateTask := imd.Tasks[uuid.MustParse(id)]
 
 	if title != "" {
@@ -65,6 +72,7 @@ func (imd *InMemoryDatabase) Delete(id string) error {
 	if err != nil {
 		return fmt.Errorf("invalid uuid: %s", id)
 	}
+
 	if _, ok := imd.Tasks[UUID]; !ok {
 		return fmt.Errorf("task with ID: %v not found", UUID)
 	}

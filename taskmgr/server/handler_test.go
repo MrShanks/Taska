@@ -36,15 +36,12 @@ func TestNewTaskHandler(t *testing.T) {
 
 	handler(response, request)
 
-	id := response.Body.String()
-	UUID := uuid.MustParse(id)
-
 	// "Check if the pushed task has been created": mockDatabase.GetTasks(),
 	got := mockDatabase.GetTasks()
 	want := task.New(newDummyTask.Title, newDummyTask.Desc)
 
-	if got[UUID].Title != want.Title {
-		t.Errorf("got: %v, want: %v", got[UUID].Title, want.Title)
+	if got[0].Title != want.Title {
+		t.Errorf("got: %v, want: %v", got[0].Title, want.Title)
 	}
 }
 
