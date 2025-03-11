@@ -15,6 +15,19 @@ type PostgresDatabase struct {
 	Conn *pgx.Conn
 }
 
+func (db *PostgresDatabase) GetOne(id string) (*task.Task, error) {
+	query := fmt.Sprintf("select * from tasks where id = '%s';", id)
+
+	t := task.Task{}
+
+	err := db.Conn.QueryRow(context.Background(), query).Scan(&t.ID, &t.Title, &t.Desc)
+	if err != nil {
+		return nil, err
+	}
+
+	return &t, nil
+}
+
 func (db *PostgresDatabase) GetTasks() map[uuid.UUID]*task.Task {
 	fetchedTasks := make(map[uuid.UUID]*task.Task)
 	query := "select * from tasks"
@@ -53,16 +66,40 @@ func (db *PostgresDatabase) New(task *task.Task) uuid.UUID {
 	return task.ID
 }
 
+func (db *PostgresDatabase) Update(id, title, desc string) (*task.Task, error) {
+	UUID, err := uuid.Parse(id)
+	var query string
+	if err != nil {
+		return nil, fmt.Errorf("invalid uuid: %s", id)
+	}
+	if title != "" {
+		query = fmt.Sprintf("update tasks set title = '%v' where id = '%s';", title, id)
+	}
+
+	if desc != "" {
+		query = fmt.Sprintf("update tasks set description = '%v' where id = '%s';", desc, id)
+	}
+
+	update, err := db.Conn.Exec(context.Background(), query)
+	if err != nil {
+		return nil, fmt.Errorf("error updating task with ID %v with error %v", id, err)
+	} else if update.String() == "DELETE 0" {
+		return nil, fmt.Errorf("task with ID %v does not exist", UUID)
+	}
+	return &task.Task{ID: UUID}, nil
+}
+
 func (db *PostgresDatabase) Delete(id string) error {
-	UUID := uuid.MustParse(id)
+	UUID, err := uuid.Parse(id)
+	if err != nil {
+		return fmt.Errorf("invalid uuid: %s", id)
+	}
 	query := fmt.Sprintf("delete from tasks where id = '%s';", id)
 
 	del, err := db.Conn.Exec(context.Background(), query)
 	if err != nil {
-		log.Printf("Error deleting task with ID %v: %v\n", id, err)
-		return err
+		return fmt.Errorf("error deleting task with ID %v with error %v", id, err)
 	} else if del.String() == "DELETE 0" {
-		log.Printf("Task with ID %v does not exist\n", UUID)
 		return fmt.Errorf("task with ID %v does not exist", UUID)
 	}
 	log.Printf("Task with ID: %v has been deleted\n", UUID)
