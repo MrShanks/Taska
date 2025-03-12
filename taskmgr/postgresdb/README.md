@@ -4,7 +4,7 @@ Run the Database
 using postgres 16.8-1.pgdg24.04+1
 
 
--- start the db and create the tasks table
+-- create the db and user
 sudo -i -u postgres psql -f taskmgr/postgresdb/dbsetup.sql
 
 
