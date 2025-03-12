@@ -1,7 +1,7 @@
 all: build test lint migration_up
 
 build:
-	go build -v -ldflags="-X github.com/MrShanks/Taska/taskmgr/main.version=$(shell yq '.version' config.yaml)" -o taskmgr .
+	go build -v -ldflags="-X github.com/MrShanks/Taska/taskmgr/main.version=$(shell yq '.version' $(MAKEFILE_DIR)config.yaml)" -o taskmgr $(realpath $(MAKEFILE_DIR))
 
 test:
 	go test -v -count=1 ./...
