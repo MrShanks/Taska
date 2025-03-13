@@ -1,6 +1,10 @@
 package logger
 
-import "github.com/google/uuid"
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
 
 type Operation string
 
@@ -16,4 +20,5 @@ type Event struct {
 	TaskID    uuid.UUID
 	TaskTitle string
 	TaskDesc  string
+	Time      time.Time
 }
