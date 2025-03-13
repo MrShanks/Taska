@@ -186,6 +186,26 @@ func DeleteTaskHandler(store task.Store) http.HandlerFunc {
 	}
 }
 
+func ImportTaskHandler(store task.Store) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		body, err := io.ReadAll(r.Body)
+		if err != nil {
+			log.Printf("error reading request body: %v", err)
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		var tasks []*task.Task
+
+		err = json.Unmarshal(body, &tasks)
+
+		store.BulkImport(tasks)
+
+		w.WriteHeader(http.StatusCreated)
+	}
+}
+
 func homeHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("Got request on / endpoint")
 

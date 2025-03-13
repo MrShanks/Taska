@@ -86,3 +86,9 @@ func (imd *InMemoryDatabase) Delete(id string) error {
 	log.Printf("Task with ID: %v has been deleted", UUID)
 	return nil
 }
+
+func (imd *InMemoryDatabase) BulkImport(tasks []*task.Task) {
+	for _, task := range tasks {
+		imd.Tasks[task.ID] = task
+	}
+}
