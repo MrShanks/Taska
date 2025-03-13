@@ -29,7 +29,6 @@ func (db *PostgresDatabase) Connect(db_url string) error {
 
 func (db *PostgresDatabase) GetOne(id string) (*task.Task, error) {
 	query := fmt.Sprintf("select * from tasks where id = '%s';", id)
-
 	t := task.Task{}
 
 	row := db.Conn.QueryRow(context.Background(), query).Scan(&t.ID, &t.Title, &t.Desc)
@@ -40,8 +39,8 @@ func (db *PostgresDatabase) GetOne(id string) (*task.Task, error) {
 	return &t, nil
 }
 
-func (db *PostgresDatabase) GetTasks() map[uuid.UUID]*task.Task {
-	fetchedTasks := make(map[uuid.UUID]*task.Task)
+func (db *PostgresDatabase) GetTasks() []*task.Task {
+	var fetchedTasks []*task.Task
 	query := "select * from tasks"
 
 	rows, err := db.Conn.Query(context.Background(), query)
@@ -52,16 +51,12 @@ func (db *PostgresDatabase) GetTasks() map[uuid.UUID]*task.Task {
 	defer rows.Close()
 
 	for rows.Next() {
-		var r task.Task
+		r := &task.Task{}
 		err := rows.Scan(&r.ID, &r.Title, &r.Desc)
 		if err != nil {
 			log.Printf("%v", err)
 		}
-		fetchedTasks[r.ID] = &task.Task{
-			ID:    r.ID,
-			Title: r.Title,
-			Desc:  r.Desc,
-		}
+		fetchedTasks = append(fetchedTasks, r)
 	}
 	return fetchedTasks
 }

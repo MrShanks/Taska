@@ -3,6 +3,7 @@ package storage
 import (
 	"fmt"
 	"log"
+	"sort"
 
 	"github.com/google/uuid"
 
@@ -34,6 +35,10 @@ func (imd *InMemoryDatabase) GetTasks() []*task.Task {
 	for _, val := range imd.Tasks {
 		tasks = append(tasks, val)
 	}
+
+	sort.Slice(tasks, func(i, j int) bool {
+		return tasks[i].Title < tasks[j].Title
+	})
 
 	return tasks
 }

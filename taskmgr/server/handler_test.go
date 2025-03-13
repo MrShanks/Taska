@@ -133,7 +133,7 @@ func TestGeneralHandler(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.desc, func(t *testing.T) {
-
+			fmt.Println(test.desc, test.want, test.endpoint, test.handler)
 			request, err := http.NewRequestWithContext(context.Background(), "GET", test.endpoint, nil)
 			if err != nil {
 				t.Errorf("couldn't create request")
@@ -144,7 +144,7 @@ func TestGeneralHandler(t *testing.T) {
 
 			test.handler(response, request)
 
-			got := response.Result().StatusCode
+			got := response.Code
 
 			if got != test.want {
 				t.Errorf("got %v, want %v", got, test.want)
