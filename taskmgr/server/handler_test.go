@@ -36,15 +36,12 @@ func TestNewTaskHandler(t *testing.T) {
 
 	handler(response, request)
 
-	id := response.Body.String()
-	UUID := uuid.MustParse(id)
-
 	// "Check if the pushed task has been created": mockDatabase.GetTasks(),
 	got := mockDatabase.GetTasks()
 	want := task.New(newDummyTask.Title, newDummyTask.Desc)
 
-	if got[UUID].Title != want.Title {
-		t.Errorf("got: %v, want: %v", got[UUID].Title, want.Title)
+	if got[0].Title != want.Title {
+		t.Errorf("got: %v, want: %v", got[0].Title, want.Title)
 	}
 }
 
@@ -136,17 +133,17 @@ func TestGeneralHandler(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.desc, func(t *testing.T) {
-
 			request, err := http.NewRequestWithContext(context.Background(), "GET", test.endpoint, nil)
 			if err != nil {
 				t.Errorf("couldn't create request")
 			}
 
 			response := httptest.NewRecorder()
+			defer response.Result().Body.Close()
 
 			test.handler(response, request)
 
-			got := response.Result().StatusCode
+			got := response.Code
 
 			if got != test.want {
 				t.Errorf("got %v, want %v", got, test.want)

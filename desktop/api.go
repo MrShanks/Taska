@@ -66,7 +66,7 @@ func GetTasks(ctr *fyne.Container) {
 		fmt.Println("Error: ", err)
 	}
 
-	tasks := make(map[uuid.UUID]*task.Task)
+	tasks := []*task.Task{}
 	if err := json.Unmarshal(data, &tasks); err != nil {
 		fmt.Println("Error: ", err)
 	}

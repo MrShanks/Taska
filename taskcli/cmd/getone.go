@@ -4,13 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/MrShanks/Taska/common/task"
+	"github.com/spf13/cobra"
 	"io"
 	"log"
 	"net/http"
-
-	"github.com/MrShanks/Taska/common/task"
-	"github.com/google/uuid"
-	"github.com/spf13/cobra"
 )
 
 var getOneCmd = &cobra.Command{
@@ -59,7 +57,7 @@ func GetTaskUUIDs(taskcli *Taskcli, ctx context.Context, endpoint string) []stri
 	}
 	defer response.Body.Close()
 
-	var tasks map[uuid.UUID]*task.Task
+	var tasks []*task.Task
 	err = json.Unmarshal(bodyBytes, &tasks)
 	if err != nil {
 		log.Printf("Couldn't decode JSON: %v", err)

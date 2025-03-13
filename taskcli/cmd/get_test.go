@@ -14,8 +14,9 @@ import (
 
 func TestFetch(t *testing.T) {
 	t.Run("Fetch Tasks returns all tasks in the store", func(t *testing.T) {
-		task1 := task.New("task1", "this is the task desc")
-		jsonTask, err := json.Marshal(task1)
+		tasks := []*task.Task{task.New("task1", "this is the task desc")}
+
+		jsonTask, err := json.Marshal(tasks)
 		if err != nil {
 			t.Errorf("couldn't Marshal task")
 		}
