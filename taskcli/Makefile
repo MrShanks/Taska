@@ -1,9 +1,7 @@
-MAKEFILE_DIR := $(dir $(MAKEFILE_LIST))
-
 all: build test run lint
 
 build:
-	go build -v -ldflags="-X github.com/MrShanks/Taska/taskcli/cmd.version=$(shell yq '.version' $(MAKEFILE_DIR)config.yaml)" -o taskcli $(realpath $(MAKEFILE_DIR))
+	go build -v -ldflags="-X github.com/MrShanks/Taska/taskcli/cmd.version=$(shell yq '.version' config.yaml)" -o taskcli .
 
 test:
 	go test -v -count=1 ./...
