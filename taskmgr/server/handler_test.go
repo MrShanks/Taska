@@ -140,6 +140,7 @@ func TestGeneralHandler(t *testing.T) {
 			}
 
 			response := httptest.NewRecorder()
+			defer response.Result().Body.Close()
 
 			test.handler(response, request)
 

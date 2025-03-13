@@ -29,7 +29,7 @@ func (imd *InMemoryDatabase) GetOne(id string) (*task.Task, error) {
 }
 
 func (imd *InMemoryDatabase) GetTasks() []*task.Task {
-	var tasks []*task.Task
+	tasks := []*task.Task{}
 
 	for _, val := range imd.Tasks {
 		tasks = append(tasks, val)
