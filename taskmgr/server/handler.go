@@ -19,7 +19,6 @@ func GetOneTaskHandler(store task.Store) func(http.ResponseWriter, *http.Request
 			w.WriteHeader(http.StatusMethodNotAllowed)
 			return
 		}
-
 		log.Printf("Got request on /task endpoint\n")
 
 		taskID := strings.Split(r.URL.Path, "/")[2]
@@ -66,11 +65,13 @@ func GetAllTasksHandler(store task.Store) http.HandlerFunc {
 		jsonTasks, err := json.Marshal(tasks)
 		if err != nil {
 			log.Printf("Couldn't Marshal tasks into json format: %v", err)
+
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 
 		w.Header().Set("Content-Type", "application/json")
+
 		_, err = w.Write(jsonTasks)
 		if err != nil {
 			log.Printf("Couldn't write response: %v", err)
@@ -83,8 +84,6 @@ func NewTaskHandler(store task.Store) http.HandlerFunc {
 		if err := isAllowedMethod(http.MethodPost, w, r); err != nil {
 			return
 		}
-
-		log.Printf("Got request on /new endpoint\n")
 
 		body, err := io.ReadAll(r.Body)
 		if err != nil {
@@ -115,6 +114,8 @@ func NewTaskHandler(store task.Store) http.HandlerFunc {
 		if err != nil {
 			log.Printf("Couldn't write response: %v", err)
 		}
+
+		EventLogger.WriteNew(newTask.ID, newTask.Title, newTask.Desc)
 	}
 }
 
@@ -162,6 +163,8 @@ func UpdateTaskHandler(store task.Store) func(http.ResponseWriter, *http.Request
 		if err != nil {
 			log.Printf("Couldn't write response: %v", err)
 		}
+
+		EventLogger.WriteMod(updatedTask.ID, updatedTask.Title, updatedTask.Desc)
 	}
 }
 
@@ -183,6 +186,8 @@ func DeleteTaskHandler(store task.Store) http.HandlerFunc {
 		}
 
 		w.WriteHeader(http.StatusAccepted)
+
+		EventLogger.WriteDel(uuid.MustParse(taskID))
 	}
 }
 
@@ -190,6 +195,7 @@ func homeHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("Got request on / endpoint")
 
 	w.WriteHeader(http.StatusOK)
+
 	_, err := w.Write([]byte("Welcome to your dashboard"))
 	if err != nil {
 		log.Printf("Couldn't write response: %v", err)
