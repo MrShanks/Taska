@@ -188,7 +188,6 @@ func DeleteTaskHandler(store task.Store) http.HandlerFunc {
 
 func ImportTaskHandler(store task.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-
 		body, err := io.ReadAll(r.Body)
 		if err != nil {
 			log.Printf("error reading request body: %v", err)
@@ -199,6 +198,11 @@ func ImportTaskHandler(store task.Store) http.HandlerFunc {
 		var tasks []*task.Task
 
 		err = json.Unmarshal(body, &tasks)
+		if err != nil {
+			log.Printf("Couldn't unmarshal tasks into a slice of tasks: %v", err)
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
 
 		store.BulkImport(tasks)
 
