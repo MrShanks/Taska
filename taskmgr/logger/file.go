@@ -6,6 +6,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -27,15 +28,15 @@ func NewFileTransactionLogger(filename string) (TransactionLogger, error) {
 }
 
 func (l *FileTransactionLogger) WriteNew(id uuid.UUID, title, desc string) {
-	l.events <- Event{Type: New, TaskID: id, TaskTitle: title, TaskDesc: desc}
+	l.events <- Event{Type: New, TaskID: id, TaskTitle: title, TaskDesc: desc, Time: time.Now()}
 }
 
 func (l *FileTransactionLogger) WriteMod(id uuid.UUID, title, desc string) {
-	l.events <- Event{Type: Mod, TaskID: id, TaskTitle: title, TaskDesc: desc}
+	l.events <- Event{Type: Mod, TaskID: id, TaskTitle: title, TaskDesc: desc, Time: time.Now()}
 }
 
 func (l *FileTransactionLogger) WriteDel(id uuid.UUID) {
-	l.events <- Event{Type: Del, TaskID: id}
+	l.events <- Event{Type: Del, TaskID: id, Time: time.Now()}
 }
 
 func (l *FileTransactionLogger) ReadEvents() (<-chan Event, <-chan error) {
@@ -92,8 +93,8 @@ func (l *FileTransactionLogger) Run() {
 
 			_, err := fmt.Fprintf(
 				l.file,
-				"%d\t%s\t%v\t%-20s\t%s\n",
-				l.lastID, e.Type, e.TaskID, e.TaskTitle, e.TaskDesc)
+				"%d\t%s\t%s\t%v\t%-20s\t%s\n",
+				l.lastID, e.Time.Format(time.RFC1123), e.Type, e.TaskID, e.TaskTitle, e.TaskDesc)
 
 			if err != nil {
 				errors <- err
