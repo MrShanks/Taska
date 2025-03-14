@@ -7,9 +7,11 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/MrShanks/Taska/common/task"
 	"github.com/google/uuid"
 	"gopkg.in/yaml.v3"
+
+	"github.com/MrShanks/Taska/common/author"
+	"github.com/MrShanks/Taska/common/task"
 )
 
 const contentType = "Content-Type"
@@ -192,10 +194,6 @@ func DeleteTaskHandler(store task.Store) http.HandlerFunc {
 
 func ImportTaskHandler(store task.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if err := isAllowedMethod(http.MethodPost, w, r); err != nil {
-			return
-		}
-
 		log.Printf("Got request on /import endpoint\n")
 
 		body, err := io.ReadAll(r.Body)
@@ -227,6 +225,66 @@ func ImportTaskHandler(store task.Store) http.HandlerFunc {
 		store.BulkImport(tasks)
 
 		w.WriteHeader(http.StatusCreated)
+	}
+}
+
+func Signup(store author.Store) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if err := isAllowedMethod(http.MethodPost, w, r); err != nil {
+			return
+		}
+
+		log.Printf("Got request on /signup endpoint\n")
+
+		body, err := io.ReadAll(r.Body)
+		if err != nil {
+			log.Printf("Couldn't read the body. Error type: %v", err)
+		}
+		defer r.Body.Close()
+
+		newAuthor := author.Author{}
+
+		err = json.Unmarshal(body, &newAuthor)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			log.Printf("Couldn't unmarshal the body. Error type: %s", err)
+			return
+		}
+
+		store.SignUp(&newAuthor)
+	}
+}
+
+func Signin(store author.Store) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if err := isAllowedMethod(http.MethodPost, w, r); err != nil {
+			return
+		}
+
+		log.Printf("Got request on /signin endpoint\n")
+
+		body, err := io.ReadAll(r.Body)
+		if err != nil {
+			log.Printf("Couldn't read the body. Error type: %v", err)
+		}
+		defer r.Body.Close()
+
+		signInAuthor := author.Author{}
+
+		err = json.Unmarshal(body, &signInAuthor)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			log.Printf("Couldn't unmarshal the body. Error type: %s", err)
+			return
+		}
+
+		if err = store.SignIn(signInAuthor.Email, signInAuthor.Password); err != nil {
+			w.WriteHeader(http.StatusUnauthorized)
+			log.Printf("Error during authentication: %v", err)
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
 	}
 }
 

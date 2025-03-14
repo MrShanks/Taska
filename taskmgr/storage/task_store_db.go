@@ -12,11 +12,11 @@ import (
 	"github.com/MrShanks/Taska/common/task"
 )
 
-type PostgresDatabase struct {
+type TaskStoreDB struct {
 	Conn *pgx.Conn
 }
 
-func (db *PostgresDatabase) Connect(db_url string) error {
+func (db *TaskStoreDB) Connect(db_url string) error {
 	password := os.Getenv("POSTGRES_PWD")
 	dburl := fmt.Sprintf(db_url, password)
 	var err error
@@ -29,7 +29,7 @@ func (db *PostgresDatabase) Connect(db_url string) error {
 	return nil
 }
 
-func (db *PostgresDatabase) GetOne(id string) (*task.Task, error) {
+func (db *TaskStoreDB) GetOne(id string) (*task.Task, error) {
 	query := fmt.Sprintf("SELECT * FROM task WHERE id = '%s';", id)
 
 	t := task.Task{}
@@ -42,7 +42,7 @@ func (db *PostgresDatabase) GetOne(id string) (*task.Task, error) {
 	return &t, nil
 }
 
-func (db *PostgresDatabase) GetTasks() []*task.Task {
+func (db *TaskStoreDB) GetTasks() []*task.Task {
 	var fetchedTasks []*task.Task
 	query := "SELECT * FROM task"
 
@@ -66,7 +66,7 @@ func (db *PostgresDatabase) GetTasks() []*task.Task {
 	return fetchedTasks
 }
 
-func (db *PostgresDatabase) New(task *task.Task) uuid.UUID {
+func (db *TaskStoreDB) New(task *task.Task) uuid.UUID {
 	query := fmt.Sprintf("INSERT INTO task (title, description) VALUES ('%s', '%s');", task.Title, task.Desc)
 
 	_, err := db.Conn.Exec(context.Background(), query)
@@ -78,7 +78,7 @@ func (db *PostgresDatabase) New(task *task.Task) uuid.UUID {
 	return task.ID
 }
 
-func (db *PostgresDatabase) Update(id, title, desc string) (*task.Task, error) {
+func (db *TaskStoreDB) Update(id, title, desc string) (*task.Task, error) {
 	UUID, err := uuid.Parse(id)
 	if err != nil {
 		return nil, fmt.Errorf("invalid uuid: %s", id)
@@ -107,7 +107,7 @@ func (db *PostgresDatabase) Update(id, title, desc string) (*task.Task, error) {
 	return &updatedTask, nil
 }
 
-func (db *PostgresDatabase) Delete(id string) error {
+func (db *TaskStoreDB) Delete(id string) error {
 	UUID, err := uuid.Parse(id)
 	if err != nil {
 		return fmt.Errorf("invalid uuid: %s", id)
@@ -128,7 +128,7 @@ func (db *PostgresDatabase) Delete(id string) error {
 	return nil
 }
 
-func (db *PostgresDatabase) BulkImport(tasks []*task.Task) {
+func (db *TaskStoreDB) BulkImport(tasks []*task.Task) {
 	for _, t := range tasks {
 		query := fmt.Sprintf("INSERT INTO task (title, description) VALUES ('%s', '%s');", t.Title, t.Desc)
 
