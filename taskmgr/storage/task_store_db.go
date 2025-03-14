@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"os"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -12,24 +11,11 @@ import (
 	"github.com/MrShanks/Taska/common/task"
 )
 
-type PostgresDatabase struct {
+type TaskStoreDB struct {
 	Conn *pgx.Conn
 }
 
-func (db *PostgresDatabase) Connect(db_url string) error {
-	password := os.Getenv("POSTGRES_PWD")
-	dburl := fmt.Sprintf(db_url, password)
-	var err error
-
-	db.Conn, err = pgx.Connect(context.Background(), dburl)
-	if err != nil {
-		return fmt.Errorf("error connecting to the database: %v", err)
-	}
-
-	return nil
-}
-
-func (db *PostgresDatabase) GetOne(id string) (*task.Task, error) {
+func (db *TaskStoreDB) GetOne(id string) (*task.Task, error) {
 	query := fmt.Sprintf("select * from task where id = '%s';", id)
 
 	t := task.Task{}
@@ -42,7 +28,7 @@ func (db *PostgresDatabase) GetOne(id string) (*task.Task, error) {
 	return &t, nil
 }
 
-func (db *PostgresDatabase) GetTasks() []*task.Task {
+func (db *TaskStoreDB) GetTasks() []*task.Task {
 	var fetchedTasks []*task.Task
 	query := "select * from task"
 
@@ -66,7 +52,7 @@ func (db *PostgresDatabase) GetTasks() []*task.Task {
 	return fetchedTasks
 }
 
-func (db *PostgresDatabase) New(task *task.Task) uuid.UUID {
+func (db *TaskStoreDB) New(task *task.Task) uuid.UUID {
 	query := fmt.Sprintf("insert into task (title, description) values ('%s', '%s');", task.Title, task.Desc)
 
 	_, err := db.Conn.Exec(context.Background(), query)
@@ -78,7 +64,7 @@ func (db *PostgresDatabase) New(task *task.Task) uuid.UUID {
 	return task.ID
 }
 
-func (db *PostgresDatabase) Update(id, title, desc string) (*task.Task, error) {
+func (db *TaskStoreDB) Update(id, title, desc string) (*task.Task, error) {
 	UUID, err := uuid.Parse(id)
 	if err != nil {
 		return nil, fmt.Errorf("invalid uuid: %s", id)
@@ -109,7 +95,7 @@ func (db *PostgresDatabase) Update(id, title, desc string) (*task.Task, error) {
 	return &updatedTask, nil
 }
 
-func (db *PostgresDatabase) Delete(id string) error {
+func (db *TaskStoreDB) Delete(id string) error {
 	UUID, err := uuid.Parse(id)
 	if err != nil {
 		return fmt.Errorf("invalid uuid: %s", id)
