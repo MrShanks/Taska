@@ -188,6 +188,12 @@ func DeleteTaskHandler(store task.Store) http.HandlerFunc {
 
 func ImportTaskHandler(store task.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		if err := isAllowedMethod(http.MethodPost, w, r); err != nil {
+			return
+		}
+
+		log.Printf("Got request on /import endpoint\n")
+
 		body, err := io.ReadAll(r.Body)
 		if err != nil {
 			log.Printf("error reading request body: %v", err)
