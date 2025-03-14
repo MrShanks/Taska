@@ -8,6 +8,8 @@ CREATE TABLE author (
     password TEXT
 );
 
+TRUNCATE TABLE task;
+
 ALTER TABLE task ADD COLUMN author_id UUID NOT NULL DEFAULT gen_random_uuid();
 ALTER TABLE task ADD CONSTRAINT fk_author FOREIGN KEY (author_id) REFERENCES author(id) ON DELETE CASCADE;
 
