@@ -251,7 +251,13 @@ func Signup(store author.Store) http.HandlerFunc {
 			return
 		}
 
-		store.SignUp(&newAuthor)
+		if err = store.SignUp(&newAuthor); err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			log.Printf("Couldn't sign you up: %v", err)
+			return
+		}
+
+		w.WriteHeader(http.StatusCreated)
 	}
 }
 
