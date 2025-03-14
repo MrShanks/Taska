@@ -26,13 +26,17 @@ func (db *AuthorStoreDB) SignUp(newAuthor *author.Author) error {
 }
 
 func (db *AuthorStoreDB) SignIn(email, password string) error {
-	query := fmt.Sprintf("SELECT * FROM author WHERE email = '%s' and passowrd = '%s';", email, password)
+	query := fmt.Sprintf("SELECT * FROM author WHERE email = '%s' and password = '%s';", email, password)
 
 	a := author.Author{}
 
-	result := db.Conn.QueryRow(context.Background(), query).Scan(&a.ID, &a.Firstname, &a.Lastname, &a.Email, &a.Password)
-	if result == pgx.ErrNoRows {
+	err := db.Conn.QueryRow(context.Background(), query).Scan(&a.ID, &a.Firstname, &a.Lastname, &a.Email, &a.Password)
+	if err == pgx.ErrNoRows {
 		return fmt.Errorf("couln't find a email password match")
+	}
+
+	if err != nil {
+		return fmt.Errorf("error signing in the user: %v", err)
 	}
 
 	return nil
