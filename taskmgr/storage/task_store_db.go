@@ -19,8 +19,9 @@ func (db *TaskStoreDB) GetOne(id string) (*task.Task, error) {
 	query := fmt.Sprintf("select * from task where id = '%s';", id)
 
 	t := task.Task{}
+	var author string
 
-	row := db.Conn.QueryRow(context.Background(), query).Scan(&t.ID, &t.Title, &t.Desc)
+	row := db.Conn.QueryRow(context.Background(), query).Scan(&t.ID, &t.Title, &t.Desc, &author)
 	if row == pgx.ErrNoRows {
 		return nil, fmt.Errorf("task not found")
 	}
@@ -41,8 +42,9 @@ func (db *TaskStoreDB) GetTasks() []*task.Task {
 
 	for rows.Next() {
 		r := &task.Task{}
+		var author string
 
-		err := rows.Scan(&r.ID, &r.Title, &r.Desc)
+		err := rows.Scan(&r.ID, &r.Title, &r.Desc, &author)
 		if err != nil {
 			log.Printf("%v", err)
 		}
@@ -53,8 +55,14 @@ func (db *TaskStoreDB) GetTasks() []*task.Task {
 }
 
 func (db *TaskStoreDB) New(task *task.Task) uuid.UUID {
-	query := fmt.Sprintf("insert into task (title, description) values ('%s', '%s');", task.Title, task.Desc)
+	// To be removed when proper user logic is implemented
+	queryID := "SELECT id FROM author WHERE email = 'marco@rossi.com';"
+	var ID string
+	db.Conn.QueryRow(context.Background(), queryID).Scan(&ID)
 
+	fmt.Println(ID)
+
+	query := fmt.Sprintf("insert into task (author_id, title, description) values ('%s', '%s', '%s');", ID, task.Title, task.Desc)
 	_, err := db.Conn.Exec(context.Background(), query)
 	if err != nil {
 		log.Printf("%v", err)
