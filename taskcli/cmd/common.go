@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -84,12 +85,12 @@ func fetch(taskcli *Taskcli, ctx context.Context, endpoint string, result any) e
 
 	request, err := http.NewRequestWithContext(ctx, "GET", taskcli.ServerURL.String(), nil)
 	if err != nil {
-		return fmt.Errorf("Couldn't create request: %v", err)
+		return fmt.Errorf("couldn't create request: %v", err)
 	}
 
 	response, err := taskcli.HttpClient.Do(request)
 	if err != nil {
-		return fmt.Errorf("Couldn't get a response from the server: %v", err)
+		return fmt.Errorf("couldn't get a response from the server: %v", err)
 	}
 	defer response.Body.Close()
 
@@ -99,13 +100,32 @@ func fetch(taskcli *Taskcli, ctx context.Context, endpoint string, result any) e
 
 	data, err := io.ReadAll(response.Body)
 	if err != nil {
-		return fmt.Errorf("Couldn't read response body: %v", err)
+		return fmt.Errorf("couldn't read response body: %v", err)
 	}
 
 	err = json.Unmarshal(data, result)
 	if err != nil {
-		return fmt.Errorf("Couldn't unmarshal: %v", err)
+		return fmt.Errorf("couldn't unmarshal: %v", err)
 	}
 
 	return nil
+}
+
+func importTasks(path string) error {
+	file, err := os.Open(path)
+	if err != nil {
+		fmt.Println("error")
+		return err
+	}
+	defer file.Close()
+
+	ext := filepath.Ext(path)
+	if ext == ".yaml" {
+		fmt.Printf("Imported yaml-file: %v\n", file.Name())
+		return nil
+	} else if ext == ".json" {
+		fmt.Printf("Imported json-file: %v\n", file.Name())
+		return nil
+	}
+	return fmt.Errorf("provided file is not a yaml or json file")
 }
