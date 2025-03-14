@@ -8,4 +8,5 @@ type Store interface {
 	New(*Task) uuid.UUID
 	Delete(id string) error
 	Update(id, title, desc string) (*Task, error)
+	BulkImport([]*Task)
 }
