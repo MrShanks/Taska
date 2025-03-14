@@ -30,7 +30,8 @@ func (db *PostgresDatabase) Connect(db_url string) error {
 }
 
 func (db *PostgresDatabase) GetOne(id string) (*task.Task, error) {
-	query := fmt.Sprintf("select * from tasks where id = '%s';", id)
+	query := fmt.Sprintf("select * from task where id = '%s';", id)
+
 	t := task.Task{}
 
 	row := db.Conn.QueryRow(context.Background(), query).Scan(&t.ID, &t.Title, &t.Desc)
@@ -43,7 +44,7 @@ func (db *PostgresDatabase) GetOne(id string) (*task.Task, error) {
 
 func (db *PostgresDatabase) GetTasks() []*task.Task {
 	var fetchedTasks []*task.Task
-	query := "select * from tasks"
+	query := "select * from task"
 
 	rows, err := db.Conn.Query(context.Background(), query)
 	if err != nil {
@@ -66,7 +67,7 @@ func (db *PostgresDatabase) GetTasks() []*task.Task {
 }
 
 func (db *PostgresDatabase) New(task *task.Task) uuid.UUID {
-	query := fmt.Sprintf("insert into tasks (title, description) values ('%s', '%s');", task.Title, task.Desc)
+	query := fmt.Sprintf("insert into task (title, description) values ('%s', '%s');", task.Title, task.Desc)
 
 	_, err := db.Conn.Exec(context.Background(), query)
 	if err != nil {
@@ -85,7 +86,7 @@ func (db *PostgresDatabase) Update(id, title, desc string) (*task.Task, error) {
 
 	var query string
 
-	query = fmt.Sprintf(`update tasks set title = '%s', description = '%s' where id = '%s';`, title, desc, id)
+	query = fmt.Sprintf(`update task set title = '%s', description = '%s' where id = '%s';`, title, desc, id)
 
 	update, err := db.Conn.Exec(context.Background(), query)
 	if err != nil {
@@ -114,7 +115,7 @@ func (db *PostgresDatabase) Delete(id string) error {
 		return fmt.Errorf("invalid uuid: %s", id)
 	}
 
-	query := fmt.Sprintf("delete from tasks where id = '%s';", id)
+	query := fmt.Sprintf("delete from task where id = '%s';", id)
 
 	del, err := db.Conn.Exec(context.Background(), query)
 	if err != nil {
