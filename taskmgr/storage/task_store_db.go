@@ -58,14 +58,16 @@ func (db *TaskStoreDB) New(task *task.Task) uuid.UUID {
 	// To be removed when proper user logic is implemented
 	queryID := "SELECT id FROM author WHERE email = 'marco@rossi.com';"
 	var ID string
-	db.Conn.QueryRow(context.Background(), queryID).Scan(&ID)
 
-	fmt.Println(ID)
+	err := db.Conn.QueryRow(context.Background(), queryID).Scan(&ID)
+	if err == pgx.ErrNoRows {
+		log.Printf("Couldn't find a match: %v", err)
+	}
 
 	query := fmt.Sprintf("insert into task (author_id, title, description) values ('%s', '%s', '%s');", ID, task.Title, task.Desc)
-	_, err := db.Conn.Exec(context.Background(), query)
+	_, err = db.Conn.Exec(context.Background(), query)
 	if err != nil {
-		log.Printf("%v", err)
+		log.Printf("Could not insert new record into the database %v", err)
 		return uuid.Nil
 	}
 
@@ -124,7 +126,7 @@ func (db *TaskStoreDB) Delete(id string) error {
 	return nil
 }
 
-func (db *PostgresDatabase) BulkImport(tasks []*task.Task) {
+func (db *TaskStoreDB) BulkImport(tasks []*task.Task) {
 	for _, t := range tasks {
 		query := fmt.Sprintf("insert into tasks (title, description) values ('%s', '%s');", t.Title, t.Desc)
 

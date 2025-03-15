@@ -17,6 +17,8 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
+var loggedAuthors = make(map[string]string)
+
 func NewServer(cfg *utils.Config, taskStore task.Store, authorStore author.Store) *http.Server {
 	return &http.Server{
 		Addr:              net.JoinHostPort(cfg.Spec.Host, cfg.Spec.Port),
