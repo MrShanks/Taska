@@ -56,10 +56,11 @@ func importTasks(taskcli *Taskcli, ctx context.Context, endpoint, path string) e
 
 		request.Header.Set("Content-Type", "application/x-yaml")
 
-		_, err = taskcli.HttpClient.Do(request)
+		response, err := taskcli.HttpClient.Do(request)
 		if err != nil {
 			return fmt.Errorf("couldn't get a response from the server: %v", err)
 		}
+		defer response.Body.Close()
 
 		fmt.Printf("Imported yaml-file: %v\n", file.Name())
 		return nil
@@ -71,10 +72,11 @@ func importTasks(taskcli *Taskcli, ctx context.Context, endpoint, path string) e
 
 		request.Header.Set("Content-Type", "application/json")
 
-		_, err = taskcli.HttpClient.Do(request)
+		response, err := taskcli.HttpClient.Do(request)
 		if err != nil {
 			return fmt.Errorf("couldn't get a response from the server: %v", err)
 		}
+		defer response.Body.Close()
 
 		fmt.Printf("Imported json-file: %v\n", file.Name())
 		return nil
