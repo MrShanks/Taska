@@ -99,9 +99,10 @@ func NewTaskHandler(store task.Store) http.HandlerFunc {
 			http.Error(w, "Invalid JSON format", http.StatusBadRequest)
 			return
 		}
+
 		newTaskID := store.New(&newTask)
 		if newTaskID == uuid.Nil {
-			_, err := w.Write([]byte("Could't able to reach database"))
+			_, err := w.Write([]byte("Couldn't reach the database"))
 			if err != nil {
 				log.Printf("Error: %v", err)
 			}
