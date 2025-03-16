@@ -7,10 +7,9 @@ import (
 
 func LoggedInOnly(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		log.Println(r.Header.Get("Token"))
-		log.Println(loggedAuthors[r.Header.Get("Token")])
 		if _, ok := loggedAuthors[r.Header.Get("Token")]; !ok {
-			http.NotFound(w, r)
+			log.Println("Unauthorized: Token not valid or empty")
+			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
 

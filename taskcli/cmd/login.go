@@ -5,10 +5,15 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
+	"os"
+	"path/filepath"
 
 	"github.com/spf13/cobra"
 )
+
+var token string
 
 var loginCmd = &cobra.Command{
 	Use:   "login -e [email] -p [password]",
@@ -21,15 +26,17 @@ var loginCmd = &cobra.Command{
 
 		email, err := cmd.Flags().GetString("email")
 		if err != nil {
-			cmd.Printf("something went wrong when fetching the email: %v", err)
+			cmd.Printf("A email must be provided to login: %v\n", err)
 		}
 
 		password, err := cmd.Flags().GetString("password")
 		if err != nil {
-			cmd.Printf("something went wrong when fetching the email: %v", err)
+			cmd.Printf("Empty password is not allowed: %v\n", err)
 		}
 
-		Login(apiClient, ctx, "login", email, password)
+		if err := Login(apiClient, ctx, "signin", email, password); err != nil {
+			cmd.Printf("Login failed: %v\n", err)
+		}
 	},
 }
 
@@ -55,17 +62,44 @@ func Login(taskcli *Taskcli, ctx context.Context, endpoint, email, password stri
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		return fmt.Errorf("task not found, status code: %v", response.StatusCode)
+		return fmt.Errorf("%v", response.StatusCode)
 	}
-	// TODO: FInish this one up
+
+	token = response.Header.Get("Token")
+
+	storeToken(token)
+
+	srvMsg, err := io.ReadAll(response.Body)
+	if err != nil {
+		return fmt.Errorf("Couldn't read response body: %v", err)
+	}
+
+	fmt.Printf("%v\n", string(srvMsg))
 
 	return nil
+}
+
+func storeToken(token string) {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		fmt.Printf("couldn't locate user home")
+	}
+
+	file, err := os.Create(filepath.Join(home, ".taskcli"))
+	if err != nil {
+		fmt.Printf("couldn't store login credentials: %v", err)
+	}
+
+	_, err = file.WriteString(fmt.Sprintf("%s\n", token))
+	if err != nil {
+		fmt.Printf("cannot write to %s, error: %v", file.Name(), err)
+	}
 
 }
 
 func init() {
-	newCmd.Flags().StringP("email", "e", "marco@rossi.com", "email to authenticate author")
-	newCmd.Flags().StringP("password", "p", "password", "password to authenticate author")
+	loginCmd.Flags().StringP("email", "e", "marco@rossi.com", "email to authenticate author")
+	loginCmd.Flags().StringP("password", "p", "password", "password to authenticate author")
 
 	rootCmd.AddCommand(loginCmd)
 }

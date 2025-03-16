@@ -263,7 +263,7 @@ func Signin(store author.Store) http.HandlerFunc {
 			return
 		}
 
-		log.Printf("Got request on /signin endpoint\n")
+		log.Printf("Got request on /signin endpoint")
 
 		body, err := io.ReadAll(r.Body)
 		if err != nil {
@@ -291,10 +291,11 @@ func Signin(store author.Store) http.HandlerFunc {
 		token := uuid.New().String()
 		loggedAuthors[token] = signInAuthor.Email
 
+		w.Header().Set("token", token)
 		w.WriteHeader(http.StatusOK)
-		err = json.NewEncoder(w).Encode(token)
-		if err != nil {
-			log.Printf("Couldn't encode token in the response: %v", err)
+
+		if _, err := w.Write([]byte("Login successful!")); err != nil {
+			log.Printf("Couldn't write login response: %v", err)
 		}
 	}
 }

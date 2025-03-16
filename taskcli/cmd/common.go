@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -79,33 +80,55 @@ func getFlags(cmd *cobra.Command, required int) (string, string, error) {
 	return title, desc, nil
 }
 
-func fetch(taskcli *Taskcli, ctx context.Context, endpoint string, result any) error {
+func fetch(taskcli *Taskcli, ctx context.Context, endpoint string, result any, token string) error {
 	taskcli.ServerURL.Path = endpoint
 
 	request, err := http.NewRequestWithContext(ctx, "GET", taskcli.ServerURL.String(), nil)
 	if err != nil {
-		return fmt.Errorf("Couldn't create request: %v", err)
+		return fmt.Errorf("couldn't create request: %v", err)
 	}
+
+	request.Header.Set("token", token)
 
 	response, err := taskcli.HttpClient.Do(request)
 	if err != nil {
-		return fmt.Errorf("Couldn't get a response from the server: %v", err)
+		return fmt.Errorf("couldn't get a response from the server: %v", err)
 	}
 	defer response.Body.Close()
 
-	if response.StatusCode != http.StatusOK {
+	if response.StatusCode == http.StatusNotFound {
 		return fmt.Errorf("task not found, status code: %v", response.StatusCode)
+	}
+
+	if response.StatusCode == http.StatusUnauthorized {
+		return fmt.Errorf("token might be invalid, empty or expired")
 	}
 
 	data, err := io.ReadAll(response.Body)
 	if err != nil {
-		return fmt.Errorf("Couldn't read response body: %v", err)
+		return fmt.Errorf("couldn't read response body: %v", err)
 	}
 
 	err = json.Unmarshal(data, result)
 	if err != nil {
-		return fmt.Errorf("Couldn't unmarshal: %v", err)
+		return fmt.Errorf("couldn't unmarshal: %v", err)
 	}
 
 	return nil
+}
+
+func readToken() string {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		fmt.Printf("couldn't locate user home\n")
+	}
+
+	content, err := os.ReadFile(filepath.Join(home, ".taskcli"))
+	if err != nil {
+		fmt.Printf("couldn't retrieve token from user home: %v\n", err)
+	}
+
+	token := strings.TrimRight(string(content), "\n")
+
+	return token
 }

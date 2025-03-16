@@ -40,7 +40,7 @@ func TestFetch(t *testing.T) {
 			ServerURL:  *serverURL,
 		}
 
-		got := FetchTasks(mockClient, context.Background(), "/tasks")
+		got := FetchTasks(mockClient, context.Background(), "/tasks", "token")
 		want := jsonTask
 
 		if reflect.DeepEqual(got, want) {
