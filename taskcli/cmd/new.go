@@ -25,25 +25,6 @@ func runNewCmd(cmd *cobra.Command, args []string) {
 	ctx := context.Background()
 	apiClient := NewApiClient()
 
-	if cmd.Flags().Changed("import") {
-		importFile, err := cmd.Flags().GetString("import")
-		if err != nil {
-			cmd.Printf("couldn't get the passed value: import: %v", err)
-			return
-		}
-		if importFile == "" {
-			cmd.Printf("please specify a file to import")
-			return
-		}
-
-		err = importTasks(importFile)
-		if err != nil {
-			cmd.Printf("no valid path, error: %v", err)
-			return
-		}
-		return
-	}
-
 	title, desc, err := getFlags(cmd, 0)
 	if err != nil {
 		cmd.Printf("Error: %v\n", err)
@@ -89,11 +70,6 @@ func newTask(taskcli *Taskcli, ctx context.Context, endpoint, title, desc string
 func init() {
 	newCmd.Flags().StringP("title", "t", "Untitled task", "Title of the new fancy task")
 	newCmd.Flags().StringP("desc", "d", "Default description", "Description of the new task")
-
-	newCmd.Flags().StringP("import", "i", "", "Yaml/Json with tasks to import")
-
-	newCmd.MarkFlagsMutuallyExclusive("import", "title")
-	newCmd.MarkFlagsMutuallyExclusive("import", "desc")
 
 	rootCmd.AddCommand(newCmd)
 }
