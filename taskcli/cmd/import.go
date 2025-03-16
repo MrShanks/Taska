@@ -1,8 +1,11 @@
 package cmd
 
 import (
+	"bytes"
 	"context"
 	"fmt"
+	"io"
+	"net/http"
 	"os"
 	"path/filepath"
 
@@ -30,6 +33,8 @@ func runImportCmd(cmd *cobra.Command, args []string) {
 }
 
 func importTasks(taskcli *Taskcli, ctx context.Context, endpoint, path string) error {
+	taskcli.ServerURL.Path = endpoint
+
 	file, err := os.Open(path)
 	if err != nil {
 		fmt.Println("error")
@@ -37,11 +42,40 @@ func importTasks(taskcli *Taskcli, ctx context.Context, endpoint, path string) e
 	}
 	defer file.Close()
 
+	data, err := io.ReadAll(file)
+	if err != nil {
+		fmt.Printf("Failed to read file: %v", err)
+	}
+
 	ext := filepath.Ext(path)
-	if ext == ".yaml" {
+	if ext == ".yaml" || ext == ".yml" {
+		request, err := http.NewRequestWithContext(ctx, "POST", taskcli.ServerURL.String(), bytes.NewReader(data))
+		if err != nil {
+			return fmt.Errorf("couldn't create request: %v", err)
+		}
+
+		request.Header.Set("Content-Type", "application/x-yaml")
+
+		_, err = taskcli.HttpClient.Do(request)
+		if err != nil {
+			return fmt.Errorf("couldn't get a response from the server: %v", err)
+		}
+
 		fmt.Printf("Imported yaml-file: %v\n", file.Name())
 		return nil
 	} else if ext == ".json" {
+		request, err := http.NewRequestWithContext(ctx, "POST", taskcli.ServerURL.String(), bytes.NewReader(data))
+		if err != nil {
+			return fmt.Errorf("couldn't create request: %v", err)
+		}
+
+		request.Header.Set("Content-Type", "application/json")
+
+		_, err = taskcli.HttpClient.Do(request)
+		if err != nil {
+			return fmt.Errorf("couldn't get a response from the server: %v", err)
+		}
+
 		fmt.Printf("Imported json-file: %v\n", file.Name())
 		return nil
 	}
