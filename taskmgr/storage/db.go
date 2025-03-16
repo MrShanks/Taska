@@ -132,7 +132,7 @@ func (db *PostgresDatabase) Delete(id string) error {
 
 func (db *PostgresDatabase) BulkImport(tasks []*task.Task) {
 	for _, t := range tasks {
-		query := fmt.Sprintf("insert into tasks (title, description) values ('%s', '%s');", t.Title, t.Desc)
+		query := fmt.Sprintf("insert into task (title, description) values ('%s', '%s');", t.Title, t.Desc)
 
 		_, err := db.Conn.Exec(context.Background(), query)
 		if err != nil {

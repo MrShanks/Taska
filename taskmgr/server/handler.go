@@ -9,6 +9,7 @@ import (
 
 	"github.com/MrShanks/Taska/common/task"
 	"github.com/google/uuid"
+	"gopkg.in/yaml.v3"
 )
 
 func GetOneTaskHandler(store task.Store) func(http.ResponseWriter, *http.Request) {
@@ -203,11 +204,21 @@ func ImportTaskHandler(store task.Store) http.HandlerFunc {
 
 		var tasks []*task.Task
 
-		err = json.Unmarshal(body, &tasks)
-		if err != nil {
-			log.Printf("Couldn't unmarshal tasks into a slice of tasks: %v", err)
-			w.WriteHeader(http.StatusBadRequest)
-			return
+		contentType := r.Header.Get("Content-Type")
+		if contentType == "application/json" {
+			err = json.Unmarshal(body, &tasks)
+			if err != nil {
+				log.Printf("Couldn't unmarshal tasks into a slice of tasks: %v", err)
+				w.WriteHeader(http.StatusBadRequest)
+				return
+			}
+		} else if contentType == "application/x-yaml" {
+			err = yaml.Unmarshal(body, &tasks)
+			if err != nil {
+				log.Printf("Couldn't unmarshal tasks into a slice of tasks: %v", err)
+				w.WriteHeader(http.StatusBadRequest)
+				return
+			}
 		}
 
 		store.BulkImport(tasks)
