@@ -47,41 +47,27 @@ func importTasks(taskcli *Taskcli, ctx context.Context, endpoint, path string) e
 		fmt.Printf("Failed to read file: %v", err)
 	}
 
-	ext := filepath.Ext(path)
-	if ext == ".yaml" || ext == ".yml" {
-		request, err := http.NewRequestWithContext(ctx, "POST", taskcli.ServerURL.String(), bytes.NewReader(data))
-		if err != nil {
-			return fmt.Errorf("couldn't create request: %v", err)
-		}
-
-		request.Header.Set("Content-Type", "application/x-yaml")
-
-		response, err := taskcli.HttpClient.Do(request)
-		if err != nil {
-			return fmt.Errorf("couldn't get a response from the server: %v", err)
-		}
-		defer response.Body.Close()
-
-		fmt.Printf("Imported yaml-file: %v\n", file.Name())
-		return nil
-	} else if ext == ".json" {
-		request, err := http.NewRequestWithContext(ctx, "POST", taskcli.ServerURL.String(), bytes.NewReader(data))
-		if err != nil {
-			return fmt.Errorf("couldn't create request: %v", err)
-		}
-
-		request.Header.Set("Content-Type", "application/json")
-
-		response, err := taskcli.HttpClient.Do(request)
-		if err != nil {
-			return fmt.Errorf("couldn't get a response from the server: %v", err)
-		}
-		defer response.Body.Close()
-
-		fmt.Printf("Imported json-file: %v\n", file.Name())
-		return nil
+	request, err := http.NewRequestWithContext(ctx, "POST", taskcli.ServerURL.String(), bytes.NewReader(data))
+	if err != nil {
+		return fmt.Errorf("couldn't create request: %v", err)
 	}
-	return fmt.Errorf("provided file is not a yaml or json file")
+
+	switch ext := filepath.Ext(path); ext {
+	case ".yaml":
+		request.Header.Set("Content-Type", "application/x-yaml")
+	case ".json":
+		request.Header.Set("Content-Type", "application/json")
+	default:
+		return fmt.Errorf("provided file is not a yaml or json file")
+	}
+
+	response, err := taskcli.HttpClient.Do(request)
+	if err != nil {
+		return fmt.Errorf("couldn't get a response from the server: %v", err)
+	}
+	defer response.Body.Close()
+	fmt.Printf("Imported file: %v\n", file.Name())
+	return nil
 }
 
 func init() {
