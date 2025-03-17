@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/MrShanks/Taska/common/task"
+	"github.com/MrShanks/Taska/utils"
 	"github.com/spf13/cobra"
 	"io"
 	"log"
@@ -22,7 +23,7 @@ var getOneCmd = &cobra.Command{
 		apiClient := NewApiClient()
 		ctx := context.Background()
 
-		token := readToken()
+		token := utils.ReadToken()
 
 		output := FetchOne(apiClient, ctx, fmt.Sprintf("/task/%s", args[0]), token)
 		outJson, err := json.Marshal(output)
@@ -36,7 +37,7 @@ func getCompletion(_ *cobra.Command, _ []string, _ string) ([]string, cobra.Shel
 	apiClient := NewApiClient()
 	ctx := context.Background()
 
-	token := readToken()
+	token := utils.ReadToken()
 
 	titles := GetTaskUUIDs(apiClient, ctx, "/tasks", token)
 

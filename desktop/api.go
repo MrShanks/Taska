@@ -13,8 +13,11 @@ import (
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 	"github.com/MrShanks/Taska/common/task"
+	"github.com/MrShanks/Taska/utils"
 	"github.com/google/uuid"
 )
+
+var token string
 
 func SubmitNewTask(titleInput, descInput *widget.Entry, ctr *fyne.Container) func() {
 	return func() {
@@ -52,6 +55,12 @@ func GetTasks(ctr *fyne.Container) {
 		fmt.Println("Error: ", err)
 		return
 	}
+
+	if token == "" {
+		token = utils.ReadToken()
+	}
+
+	request.Header.Set("token", token)
 
 	client := http.Client{}
 	response, err := client.Do(request)
@@ -138,5 +147,59 @@ func UpdateTask(id uuid.UUID, ctr *fyne.Container, oldTitle, oldDesc string) fun
 		editWindow.Resize(fyne.NewSize(400, 200))
 
 		editWindow.Show()
+	}
+}
+
+func Login(ctr *fyne.Container) func() {
+	return func() {
+		loginWindow := fyne.CurrentApp().NewWindow("Login")
+
+		email := widget.NewEntry()
+		email.SetPlaceHolder("marco@rossi.com")
+		password := widget.NewEntry()
+		password.SetPlaceHolder("password")
+
+		submitBtn := widget.NewButtonWithIcon("", theme.ConfirmIcon(), func() {
+			data := map[string]string{"email": email.Text, "password": password.Text}
+
+			body, err := json.Marshal(data)
+			if err != nil {
+				fmt.Printf("Couldn't marshal data into the request body: %v\n", err)
+			}
+
+			ctx := context.Background()
+
+			request, err := http.NewRequestWithContext(ctx, "POST", "http://localhost:8080/signin", bytes.NewBuffer(body))
+
+			if err != nil {
+				fmt.Printf("Couldn't create request: %v\n", err)
+			}
+
+			client := http.Client{}
+
+			response, err := client.Do(request)
+			if err != nil {
+				fmt.Printf("Couldn't get a response from the server: %v", err)
+			}
+			defer response.Body.Close()
+
+			if response.StatusCode != http.StatusOK {
+				fmt.Printf("%v", response.StatusCode)
+			}
+
+			token = response.Header.Get("Token")
+
+			utils.StoreToken(token)
+
+			loginWindow.Close()
+
+			GetTasks(ctr)
+		})
+
+		loginWindow.SetContent(container.NewVBox(email, password, submitBtn))
+
+		loginWindow.Resize(fyne.NewSize(400, 200))
+
+		loginWindow.Show()
 	}
 }

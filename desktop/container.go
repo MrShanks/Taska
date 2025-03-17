@@ -10,20 +10,11 @@ import (
 	"github.com/google/uuid"
 )
 
-func populateToolbar() *widget.Toolbar {
+func populateToolbar(ctr *fyne.Container) *widget.Toolbar {
 	return widget.NewToolbar(
 		widget.NewToolbarAction(theme.HomeIcon(), placeHolderFunction),
-		widget.NewToolbarAction(theme.StorageIcon(), placeHolderFunction),
-		widget.NewToolbarAction(theme.FileIcon(), placeHolderFunction),
-		widget.NewToolbarAction(theme.DocumentPrintIcon(), placeHolderFunction),
-		widget.NewToolbarAction(theme.DocumentSaveIcon(), placeHolderFunction),
-		widget.NewToolbarAction(theme.MailComposeIcon(), placeHolderFunction),
-		widget.NewToolbarAction(theme.UploadIcon(), placeHolderFunction),
-		widget.NewToolbarAction(theme.DownloadIcon(), placeHolderFunction),
 		widget.NewToolbarSpacer(),
-		widget.NewToolbarAction(theme.SettingsIcon(), placeHolderFunction),
-		widget.NewToolbarAction(theme.AccountIcon(), placeHolderFunction),
-		widget.NewToolbarAction(theme.LoginIcon(), placeHolderFunction),
+		widget.NewToolbarAction(theme.LoginIcon(), Login(ctr)),
 	)
 }
 
@@ -73,9 +64,11 @@ func createTaskForm(tasks *fyne.Container) *fyne.Container {
 }
 
 func createGUI() *fyne.Container {
-	toolbar := populateToolbar()
+	content := populateMainContent()
 
-	mainContent := populateMainContent()
+	toolbar := populateToolbar(content)
+
+	mainContent := content
 
 	leftContent := populateLeftContainer(mainContent)
 

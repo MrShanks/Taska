@@ -7,9 +7,8 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"os"
-	"path/filepath"
 
+	"github.com/MrShanks/Taska/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -67,7 +66,7 @@ func Login(taskcli *Taskcli, ctx context.Context, endpoint, email, password stri
 
 	token = response.Header.Get("Token")
 
-	storeToken(token)
+	utils.StoreToken(token)
 
 	srvMsg, err := io.ReadAll(response.Body)
 	if err != nil {
@@ -77,24 +76,6 @@ func Login(taskcli *Taskcli, ctx context.Context, endpoint, email, password stri
 	fmt.Printf("%v\n", string(srvMsg))
 
 	return nil
-}
-
-func storeToken(token string) {
-	home, err := os.UserHomeDir()
-	if err != nil {
-		fmt.Printf("couldn't locate user home")
-	}
-
-	file, err := os.Create(filepath.Join(home, ".taskcli"))
-	if err != nil {
-		fmt.Printf("couldn't store login credentials: %v", err)
-	}
-
-	_, err = file.WriteString(fmt.Sprintf("%s\n", token))
-	if err != nil {
-		fmt.Printf("cannot write to %s, error: %v", file.Name(), err)
-	}
-
 }
 
 func init() {

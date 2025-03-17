@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/MrShanks/Taska/common/task"
+	"github.com/MrShanks/Taska/utils"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
 )
@@ -23,7 +24,7 @@ var getCmd = &cobra.Command{
 		format, err := cmd.Flags().GetString("export")
 		cobra.CheckErr(err)
 
-		token := readToken()
+		token := utils.ReadToken()
 
 		data := FetchTasks(apiClient, ctx, "/tasks", token)
 
