@@ -82,5 +82,8 @@ func init() {
 	loginCmd.Flags().StringP("email", "e", "marco@rossi.com", "email to authenticate author")
 	loginCmd.Flags().StringP("password", "p", "password", "password to authenticate author")
 
+	loginCmd.MarkFlagRequired("email")
+	loginCmd.MarkFlagRequired("password")
+
 	rootCmd.AddCommand(loginCmd)
 }

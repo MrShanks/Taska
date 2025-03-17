@@ -255,6 +255,9 @@ func Signup(store author.Store) http.HandlerFunc {
 		}
 
 		w.WriteHeader(http.StatusCreated)
+		if _, err := w.Write([]byte("Signup successful!")); err != nil {
+			log.Printf("Couldn't write signup response: %v", err)
+		}
 	}
 }
 
