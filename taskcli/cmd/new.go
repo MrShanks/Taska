@@ -68,8 +68,8 @@ func newTask(taskcli *Taskcli, ctx context.Context, endpoint, title, desc string
 }
 
 func init() {
-	newCmd.PersistentFlags().StringP("title", "t", "Untitled task", "Title of the new fancy task")
-	newCmd.PersistentFlags().StringP("desc", "d", "Default description", "Description of the new task")
+	newCmd.Flags().StringP("title", "t", "Untitled task", "Title of the new fancy task")
+	newCmd.Flags().StringP("desc", "d", "Default description", "Description of the new task")
 
 	rootCmd.AddCommand(newCmd)
 }

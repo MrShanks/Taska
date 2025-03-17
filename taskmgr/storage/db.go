@@ -30,7 +30,7 @@ func (db *PostgresDatabase) Connect(db_url string) error {
 }
 
 func (db *PostgresDatabase) GetOne(id string) (*task.Task, error) {
-	query := fmt.Sprintf("select * from task where id = '%s';", id)
+	query := fmt.Sprintf("SELECT * FROM task WHERE id = '%s';", id)
 
 	t := task.Task{}
 
@@ -44,7 +44,7 @@ func (db *PostgresDatabase) GetOne(id string) (*task.Task, error) {
 
 func (db *PostgresDatabase) GetTasks() []*task.Task {
 	var fetchedTasks []*task.Task
-	query := "select * from task"
+	query := "SELECT * FROM task"
 
 	rows, err := db.Conn.Query(context.Background(), query)
 	if err != nil {
@@ -67,7 +67,7 @@ func (db *PostgresDatabase) GetTasks() []*task.Task {
 }
 
 func (db *PostgresDatabase) New(task *task.Task) uuid.UUID {
-	query := fmt.Sprintf("insert into task (title, description) values ('%s', '%s');", task.Title, task.Desc)
+	query := fmt.Sprintf("INSERT INTO task (title, description) VALUES ('%s', '%s');", task.Title, task.Desc)
 
 	_, err := db.Conn.Exec(context.Background(), query)
 	if err != nil {
@@ -84,9 +84,7 @@ func (db *PostgresDatabase) Update(id, title, desc string) (*task.Task, error) {
 		return nil, fmt.Errorf("invalid uuid: %s", id)
 	}
 
-	var query string
-
-	query = fmt.Sprintf(`update task set title = '%s', description = '%s' where id = '%s';`, title, desc, id)
+	query := fmt.Sprintf(`UPDATE task SET title = '%s', description = '%s' WHERE id = '%s';`, title, desc, id)
 
 	update, err := db.Conn.Exec(context.Background(), query)
 	if err != nil {
@@ -97,7 +95,7 @@ func (db *PostgresDatabase) Update(id, title, desc string) (*task.Task, error) {
 		return nil, fmt.Errorf("task with ID %v does not exist", UUID)
 	}
 
-	query = fmt.Sprintf("select * from tasks where id = '%s';", id)
+	query = fmt.Sprintf("SELECT * FROM tasks WHERE id = '%s';", id)
 
 	var updatedTask task.Task
 
@@ -115,7 +113,7 @@ func (db *PostgresDatabase) Delete(id string) error {
 		return fmt.Errorf("invalid uuid: %s", id)
 	}
 
-	query := fmt.Sprintf("delete from task where id = '%s';", id)
+	query := fmt.Sprintf("DELETE FROM task WHERE id = '%s';", id)
 
 	del, err := db.Conn.Exec(context.Background(), query)
 	if err != nil {
@@ -132,7 +130,7 @@ func (db *PostgresDatabase) Delete(id string) error {
 
 func (db *PostgresDatabase) BulkImport(tasks []*task.Task) {
 	for _, t := range tasks {
-		query := fmt.Sprintf("insert into tasks (title, description) values ('%s', '%s');", t.Title, t.Desc)
+		query := fmt.Sprintf("INSERT INTO task (title, description) VALUES ('%s', '%s');", t.Title, t.Desc)
 
 		_, err := db.Conn.Exec(context.Background(), query)
 		if err != nil {

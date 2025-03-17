@@ -10,7 +10,10 @@ lint:
 	golangci-lint run --config=../.golangci.yml
 
 migration_up:
-	goose -dir ./postgresdb/goose/ postgres "postgres://taskauser:$(POSTGRES_PWD)@localhost:5432/taskadb" up
+	goose -dir ./goose/ postgres "postgres://taskauser:$(POSTGRES_PWD)@localhost:5432/taskadb" up
+
+migration_down:
+	goose -dir ./goose/ postgres "postgres://taskauser:$(POSTGRES_PWD)@localhost:5432/taskadb" down
 	
 run:
 	go run ./...
