@@ -13,6 +13,7 @@ import (
 )
 
 const contentType = "Content-Type"
+const appJson = "application/json"
 
 func GetOneTaskHandler(store task.Store) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -41,7 +42,7 @@ func GetOneTaskHandler(store task.Store) func(http.ResponseWriter, *http.Request
 			return
 		}
 
-		w.Header().Set(contentType, "application/json")
+		w.Header().Set(contentType, appJson)
 		w.WriteHeader(http.StatusOK)
 		_, err = w.Write(jsonTask)
 		if err != nil {
@@ -73,7 +74,7 @@ func GetAllTasksHandler(store task.Store) http.HandlerFunc {
 			return
 		}
 
-		w.Header().Set(contentType, "application/json")
+		w.Header().Set(contentType, appJson)
 		_, err = w.Write(jsonTasks)
 		if err != nil {
 			log.Printf("Couldn't write response: %v", err)
@@ -207,7 +208,7 @@ func ImportTaskHandler(store task.Store) http.HandlerFunc {
 		var tasks []*task.Task
 
 		cType := r.Header.Get(contentType)
-		if cType == "application/json" {
+		if cType == appJson {
 			err = json.Unmarshal(body, &tasks)
 			if err != nil {
 				log.Printf("Couldn't unmarshal tasks into a slice of tasks: %v", err)
