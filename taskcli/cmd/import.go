@@ -27,7 +27,7 @@ func runImportCmd(cmd *cobra.Command, args []string) {
 
 	err := importTasks(apiClient, ctx, "/import", args[0])
 	if err != nil {
-		cmd.Printf("no valid path, error: %v", err)
+		cmd.Printf("error running importTasks: %v", err)
 		return
 	}
 }
@@ -37,19 +37,18 @@ func importTasks(taskcli *Taskcli, ctx context.Context, endpoint, path string) e
 
 	file, err := os.Open(path)
 	if err != nil {
-		fmt.Println("error")
-		return err
+		return fmt.Errorf("error opening file %s: %v", path, err)
 	}
 	defer file.Close()
 
 	data, err := io.ReadAll(file)
 	if err != nil {
-		fmt.Printf("Failed to read file: %v", err)
+		return fmt.Errorf("failed to read file %s: %v", path, err)
 	}
 
 	request, err := http.NewRequestWithContext(ctx, "POST", taskcli.ServerURL.String(), bytes.NewReader(data))
 	if err != nil {
-		return fmt.Errorf("couldn't create request: %v", err)
+		return fmt.Errorf("failed to create HTTP request: %v", err)
 	}
 
 	switch ext := filepath.Ext(path); ext {
@@ -58,7 +57,7 @@ func importTasks(taskcli *Taskcli, ctx context.Context, endpoint, path string) e
 	case ".json":
 		request.Header.Set("Content-Type", "application/json")
 	default:
-		return fmt.Errorf("provided file is not a yaml or json file")
+		return fmt.Errorf("unsupported file format: only .yaml and .json are allowed")
 	}
 
 	response, err := taskcli.HttpClient.Do(request)
