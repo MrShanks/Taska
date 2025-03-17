@@ -1,9 +1,7 @@
 package cmd
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -51,19 +49,9 @@ func Signup(taskcli *Taskcli, ctx context.Context, endpoint string, author *auth
 
 	data := map[string]string{"firstname": author.Firstname, "lastname": author.Lastname, "email": author.Email, "password": author.Password}
 
-	body, err := json.Marshal(data)
+	response, err := makeRequest(taskcli, ctx, data)
 	if err != nil {
-		return fmt.Errorf("Couldn't marshal data into the request body: %v", err)
-	}
-
-	request, err := http.NewRequestWithContext(ctx, "POST", taskcli.ServerURL.String(), bytes.NewBuffer(body))
-	if err != nil {
-		return fmt.Errorf("Couldn't create request: %v", err)
-	}
-
-	response, err := taskcli.HttpClient.Do(request)
-	if err != nil {
-		return fmt.Errorf("Couldn't get a response from the server: %v", err)
+		return fmt.Errorf("error while making request: %v", err)
 	}
 	defer response.Body.Close()
 
@@ -73,7 +61,7 @@ func Signup(taskcli *Taskcli, ctx context.Context, endpoint string, author *auth
 
 	srvMsg, err := io.ReadAll(response.Body)
 	if err != nil {
-		return fmt.Errorf("Couldn't read response body: %v", err)
+		return fmt.Errorf("couldn't read response body: %v", err)
 	}
 
 	fmt.Printf("%v\n", string(srvMsg))

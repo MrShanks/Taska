@@ -1,9 +1,7 @@
 package cmd
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -44,19 +42,9 @@ func Login(taskcli *Taskcli, ctx context.Context, endpoint, email, password stri
 
 	data := map[string]string{"email": email, "password": password}
 
-	body, err := json.Marshal(data)
+	response, err := makeRequest(taskcli, ctx, data)
 	if err != nil {
-		return fmt.Errorf("Couldn't marshal data into the request body: %v", err)
-	}
-
-	request, err := http.NewRequestWithContext(ctx, "POST", taskcli.ServerURL.String(), bytes.NewBuffer(body))
-	if err != nil {
-		return fmt.Errorf("Couldn't create request: %v", err)
-	}
-
-	response, err := taskcli.HttpClient.Do(request)
-	if err != nil {
-		return fmt.Errorf("Couldn't get a response from the server: %v", err)
+		return fmt.Errorf("error while making request: %v", err)
 	}
 	defer response.Body.Close()
 

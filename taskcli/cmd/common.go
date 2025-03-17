@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -114,4 +115,23 @@ func fetch(taskcli *Taskcli, ctx context.Context, endpoint string, result any, t
 	}
 
 	return nil
+}
+
+func makeRequest(taskcli *Taskcli, ctx context.Context, data map[string]string) (*http.Response, error) {
+	body, err := json.Marshal(data)
+	if err != nil {
+		return nil, fmt.Errorf("Couldn't marshal data into the request body: %v", err)
+	}
+
+	request, err := http.NewRequestWithContext(ctx, "POST", taskcli.ServerURL.String(), bytes.NewBuffer(body))
+	if err != nil {
+		return nil, fmt.Errorf("Couldn't create request: %v", err)
+	}
+
+	response, err := taskcli.HttpClient.Do(request)
+	if err != nil {
+		return nil, fmt.Errorf("Couldn't get a response from the server: %v", err)
+	}
+
+	return response, nil
 }
