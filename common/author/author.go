@@ -6,10 +6,11 @@ import (
 )
 
 type Author struct {
-	ID        uuid.UUID
-	Firstname string
-	Lastname  string
-	Email     string
-	Password  string
-	Tasks     []*task.Task
+	ID         uuid.UUID `json:"id"`
+	Firstname  string    `json:"firstname"`
+	Lastname   string    `json:"Lastname"`
+	Email      string    `json:"email"`
+	Password   string    `json:"password"`
+	Tasks      []*task.Task
+	IsLoggedIn bool
 }

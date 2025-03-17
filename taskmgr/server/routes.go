@@ -13,7 +13,7 @@ func InitMuxWithRoutes(taskStore task.Store, authorStore author.Store) *http.Ser
 	webMux.HandleFunc("/favicon.ico", faviconHandler)
 
 	// Tasks related Routes
-	webMux.HandleFunc("/tasks", GetAllTasksHandler(taskStore))
+	webMux.HandleFunc("/tasks", LoggedInOnly(GetAllTasksHandler(taskStore)))
 	webMux.HandleFunc("/task/{task_id}", GetOneTaskHandler(taskStore))
 	webMux.HandleFunc("/new", NewTaskHandler(taskStore))
 	webMux.HandleFunc("/import", ImportTaskHandler(taskStore))

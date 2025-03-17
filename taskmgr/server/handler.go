@@ -62,13 +62,7 @@ func GetAllTasksHandler(store task.Store) http.HandlerFunc {
 		log.Printf("Got request on /tasks endpoint\n")
 
 		tasks := store.GetTasks()
-		if tasks == nil {
-			_, err := w.Write([]byte("Could't able to reach database"))
-			if err != nil {
-				log.Printf("Error: %v", err)
-			}
-			return
-		}
+
 		jsonTasks, err := json.Marshal(tasks)
 		if err != nil {
 			log.Printf("Couldn't Marshal tasks into json format: %v", err)
@@ -238,7 +232,9 @@ func Signup(store author.Store) http.HandlerFunc {
 
 		body, err := io.ReadAll(r.Body)
 		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
 			log.Printf("Couldn't read the body. Error type: %v", err)
+			return
 		}
 		defer r.Body.Close()
 
@@ -271,7 +267,9 @@ func Signin(store author.Store) http.HandlerFunc {
 
 		body, err := io.ReadAll(r.Body)
 		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
 			log.Printf("Couldn't read the body. Error type: %v", err)
+			return
 		}
 		defer r.Body.Close()
 
@@ -290,7 +288,14 @@ func Signin(store author.Store) http.HandlerFunc {
 			return
 		}
 
+		token := uuid.New().String()
+		loggedAuthors[token] = signInAuthor.Email
+
 		w.WriteHeader(http.StatusOK)
+		err = json.NewEncoder(w).Encode(token)
+		if err != nil {
+			log.Printf("Couldn't encode token in the response: %v", err)
+		}
 	}
 }
 
