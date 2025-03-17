@@ -12,6 +12,8 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+const contentType = "Content-Type"
+
 func GetOneTaskHandler(store task.Store) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {
@@ -39,7 +41,7 @@ func GetOneTaskHandler(store task.Store) func(http.ResponseWriter, *http.Request
 			return
 		}
 
-		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set(contentType, "application/json")
 		w.WriteHeader(http.StatusOK)
 		_, err = w.Write(jsonTask)
 		if err != nil {
@@ -71,7 +73,7 @@ func GetAllTasksHandler(store task.Store) http.HandlerFunc {
 			return
 		}
 
-		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set(contentType, "application/json")
 		_, err = w.Write(jsonTasks)
 		if err != nil {
 			log.Printf("Couldn't write response: %v", err)
@@ -204,15 +206,15 @@ func ImportTaskHandler(store task.Store) http.HandlerFunc {
 
 		var tasks []*task.Task
 
-		contentType := r.Header.Get("Content-Type")
-		if contentType == "application/json" {
+		cType := r.Header.Get(contentType)
+		if cType == "application/json" {
 			err = json.Unmarshal(body, &tasks)
 			if err != nil {
 				log.Printf("Couldn't unmarshal tasks into a slice of tasks: %v", err)
 				w.WriteHeader(http.StatusBadRequest)
 				return
 			}
-		} else if contentType == "application/x-yaml" {
+		} else if cType == "application/x-yaml" {
 			err = yaml.Unmarshal(body, &tasks)
 			if err != nil {
 				log.Printf("Couldn't unmarshal tasks into a slice of tasks: %v", err)
