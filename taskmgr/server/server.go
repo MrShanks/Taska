@@ -30,9 +30,9 @@ func NewServer(cfg *utils.Config, taskStore task.Store, authorStore author.Store
 	}
 }
 
-func ConnectDB(db_url string) (*pgx.Conn, error) {
+func ConnectDB(dbURL string) (*pgx.Conn, error) {
 	password := os.Getenv("POSTGRES_PWD")
-	dburl := fmt.Sprintf(db_url, password)
+	dburl := fmt.Sprintf(dbURL, password)
 
 	var err error
 
