@@ -28,11 +28,6 @@ var getCmd = &cobra.Command{
 
 		data := FetchTasks(apiClient, ctx, "/tasks", token)
 
-		if data == nil {
-			cmd.Printf("Server response was empty\n")
-			return
-		}
-
 		var bytes []byte
 
 		if isFlagSet(format) {
@@ -62,24 +57,6 @@ var getCmd = &cobra.Command{
 	},
 }
 
-func isFlagSet(flagValue string) bool {
-	return flagValue != ""
-}
-
-func dumpOnFile(filepath, format string, data []byte) {
-	file, err := os.Create(fmt.Sprintf("%s.%s", filepath, format))
-	if err != nil {
-		fmt.Printf("Couldn't create an export file: %v", err)
-	}
-
-	_, err = file.WriteString(fmt.Sprintf("%s\n", data))
-	if err != nil {
-		fmt.Printf("cannot write to %s, error: %v\n", file.Name(), err)
-	}
-
-	fmt.Printf("file created: %s.%s\n", "export", format)
-}
-
 func FetchTasks(taskcli *Taskcli, ctx context.Context, endpoint string, token string) []*task.Task {
 	var tasks []*task.Task
 
@@ -96,4 +73,22 @@ func init() {
 	getCmd.Flags().StringP("export", "e", "", "export tasks in either json|yaml")
 
 	rootCmd.AddCommand(getCmd)
+}
+
+func isFlagSet(flagValue string) bool {
+	return flagValue != ""
+}
+
+func dumpOnFile(filepath, format string, data []byte) {
+	file, err := os.Create(fmt.Sprintf("%s.%s", filepath, format))
+	if err != nil {
+		fmt.Printf("Couldn't create an export file: %v", err)
+	}
+
+	_, err = file.WriteString(fmt.Sprintf("%s\n", data))
+	if err != nil {
+		fmt.Printf("cannot write to %s, error: %v\n", file.Name(), err)
+	}
+
+	fmt.Printf("file created: %s.%s\n", "export", format)
 }

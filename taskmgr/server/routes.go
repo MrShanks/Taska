@@ -14,11 +14,11 @@ func InitMuxWithRoutes(taskStore task.Store, authorStore author.Store) *http.Ser
 
 	// Tasks related Routes
 	webMux.HandleFunc("/tasks", LoggedInOnly(GetAllTasksHandler(taskStore)))
-	webMux.HandleFunc("/task/{task_id}", GetOneTaskHandler(taskStore))
-	webMux.HandleFunc("/new", NewTaskHandler(taskStore))
-	webMux.HandleFunc("/import", ImportTaskHandler(taskStore))
-	webMux.HandleFunc("/delete/{task_id}", DeleteTaskHandler(taskStore))
-	webMux.HandleFunc("/update/{task_id}", UpdateTaskHandler(taskStore))
+	webMux.HandleFunc("/task/{task_id}", LoggedInOnly(GetOneTaskHandler(taskStore)))
+	webMux.HandleFunc("/new", LoggedInOnly(NewTaskHandler(taskStore)))
+	webMux.HandleFunc("/import", LoggedInOnly(ImportTaskHandler(taskStore)))
+	webMux.HandleFunc("/delete/{task_id}", LoggedInOnly(DeleteTaskHandler(taskStore)))
+	webMux.HandleFunc("/update/{task_id}", LoggedInOnly(UpdateTaskHandler(taskStore)))
 
 	// Users related Routes
 	webMux.HandleFunc("/signup", Signup(authorStore))

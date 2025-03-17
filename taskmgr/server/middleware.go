@@ -10,6 +10,9 @@ func LoggedInOnly(next http.HandlerFunc) http.HandlerFunc {
 		if _, ok := loggedAuthors[r.Header.Get("Token")]; !ok {
 			log.Println("Unauthorized: Token not valid or empty")
 			w.WriteHeader(http.StatusUnauthorized)
+			if _, err := w.Write([]byte("You must login first")); err != nil {
+				log.Printf("couldn't write response")
+			}
 			return
 		}
 
