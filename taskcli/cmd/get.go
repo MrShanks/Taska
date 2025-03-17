@@ -28,6 +28,11 @@ var getCmd = &cobra.Command{
 
 		data := FetchTasks(apiClient, ctx, "/tasks", token)
 
+		if data == nil {
+			cmd.Printf("Server response was empty\n")
+			return
+		}
+
 		var bytes []byte
 
 		if isFlagSet(format) {

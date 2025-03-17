@@ -32,7 +32,7 @@ func populateLeftContainer(tasks *fyne.Container) *fyne.Container {
 
 func populateMainContent() *fyne.Container {
 	mainContent := container.NewVBox()
-	GetTasks(mainContent)
+	mainContent.Add(widget.NewLabel("To visualize your task you must login"))
 
 	return mainContent
 }

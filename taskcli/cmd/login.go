@@ -82,8 +82,11 @@ func init() {
 	loginCmd.Flags().StringP("email", "e", "marco@rossi.com", "email to authenticate author")
 	loginCmd.Flags().StringP("password", "p", "password", "password to authenticate author")
 
-	loginCmd.MarkFlagRequired("email")
-	loginCmd.MarkFlagRequired("password")
+	err := loginCmd.MarkFlagRequired("email")
+	cobra.CheckErr(err)
+
+	err = loginCmd.MarkFlagRequired("password")
+	cobra.CheckErr(err)
 
 	rootCmd.AddCommand(loginCmd)
 }

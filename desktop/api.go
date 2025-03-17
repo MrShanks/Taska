@@ -36,6 +36,12 @@ func SubmitNewTask(titleInput, descInput *widget.Entry, ctr *fyne.Container) fun
 			return
 		}
 
+		if token == "" {
+			token = utils.ReadToken()
+		}
+
+		request.Header.Set("token", token)
+
 		client := http.Client{}
 
 		response, err := client.Do(request)
@@ -96,6 +102,12 @@ func DeleteTask(id uuid.UUID, ctr *fyne.Container) func() {
 			fmt.Println("Error: ", err)
 		}
 
+		if token == "" {
+			token = utils.ReadToken()
+		}
+
+		request.Header.Set("token", token)
+
 		client := http.Client{}
 
 		response, err := client.Do(request)
@@ -129,6 +141,12 @@ func UpdateTask(id uuid.UUID, ctr *fyne.Container, oldTitle, oldDesc string) fun
 			if err != nil {
 				fmt.Println("Error: ", err)
 			}
+
+			if token == "" {
+				token = utils.ReadToken()
+			}
+
+			request.Header.Set("token", token)
 
 			client := http.Client{}
 
