@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"os"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -12,24 +11,11 @@ import (
 	"github.com/MrShanks/Taska/common/task"
 )
 
-type TaskStoreDB struct {
+type TaskStore struct {
 	Conn *pgx.Conn
 }
 
-func (db *TaskStoreDB) Connect(db_url string) error {
-	password := os.Getenv("POSTGRES_PWD")
-	dburl := fmt.Sprintf(db_url, password)
-	var err error
-
-	db.Conn, err = pgx.Connect(context.Background(), dburl)
-	if err != nil {
-		return fmt.Errorf("error connecting to the database: %v", err)
-	}
-
-	return nil
-}
-
-func (db *TaskStoreDB) GetOne(id string) (*task.Task, error) {
+func (db *TaskStore) GetOne(id string) (*task.Task, error) {
 	query := fmt.Sprintf("SELECT * FROM task WHERE id = '%s';", id)
 
 	t := task.Task{}
@@ -43,7 +29,7 @@ func (db *TaskStoreDB) GetOne(id string) (*task.Task, error) {
 	return &t, nil
 }
 
-func (db *TaskStoreDB) GetTasks() []*task.Task {
+func (db *TaskStore) GetTasks() []*task.Task {
 	var fetchedTasks []*task.Task
 	query := "SELECT * FROM task"
 
@@ -68,7 +54,7 @@ func (db *TaskStoreDB) GetTasks() []*task.Task {
 	return fetchedTasks
 }
 
-func (db *TaskStoreDB) New(task *task.Task) uuid.UUID {
+func (db *TaskStore) New(task *task.Task) uuid.UUID {
 	// To be removed when proper user logic is implemented
 	queryID := "SELECT id FROM author WHERE email = 'marco@rossi.com';"
 	var ID string
@@ -88,7 +74,7 @@ func (db *TaskStoreDB) New(task *task.Task) uuid.UUID {
 	return task.ID
 }
 
-func (db *TaskStoreDB) Update(id, title, desc string) (*task.Task, error) {
+func (db *TaskStore) Update(id, title, desc string) (*task.Task, error) {
 	UUID, err := uuid.Parse(id)
 	if err != nil {
 		return nil, fmt.Errorf("invalid uuid: %s", id)
@@ -117,7 +103,7 @@ func (db *TaskStoreDB) Update(id, title, desc string) (*task.Task, error) {
 	return &updatedTask, nil
 }
 
-func (db *TaskStoreDB) Delete(id string) error {
+func (db *TaskStore) Delete(id string) error {
 	UUID, err := uuid.Parse(id)
 	if err != nil {
 		return fmt.Errorf("invalid uuid: %s", id)
@@ -138,7 +124,7 @@ func (db *TaskStoreDB) Delete(id string) error {
 	return nil
 }
 
-func (db *TaskStoreDB) BulkImport(tasks []*task.Task) {
+func (db *TaskStore) BulkImport(tasks []*task.Task) {
 	for _, t := range tasks {
 		query := fmt.Sprintf("INSERT INTO task (title, description) VALUES ('%s', '%s');", t.Title, t.Desc)
 

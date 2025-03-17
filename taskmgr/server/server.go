@@ -54,8 +54,8 @@ func Listen(cfg *utils.Config) error {
 	}
 	defer conn.Close(context.Background())
 
-	taskStore := storage.TaskStoreDB{Conn: conn}
-	authorStore := storage.AuthorStoreDB{Conn: conn}
+	taskStore := storage.TaskStore{Conn: conn}
+	authorStore := storage.AuthorStore{Conn: conn}
 
 	httpServer := NewServer(cfg, &taskStore, &authorStore)
 	log.Printf("Server version: %s listening at %s", cfg.Version, httpServer.Addr)

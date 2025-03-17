@@ -8,11 +8,11 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-type AuthorStoreDB struct {
+type AuthorStore struct {
 	Conn *pgx.Conn
 }
 
-func (db *AuthorStoreDB) SignUp(newAuthor *author.Author) error {
+func (db *AuthorStore) SignUp(newAuthor *author.Author) error {
 	query := fmt.Sprintf(
 		"INSERT INTO author (firstname, lastname, email, password) values ('%s','%s','%s','%s');",
 		newAuthor.Firstname, newAuthor.Lastname, newAuthor.Email, newAuthor.Password)
@@ -25,7 +25,7 @@ func (db *AuthorStoreDB) SignUp(newAuthor *author.Author) error {
 	return nil
 }
 
-func (db *AuthorStoreDB) SignIn(email, password string) error {
+func (db *AuthorStore) SignIn(email, password string) error {
 	query := fmt.Sprintf("SELECT * FROM author WHERE email = '%s' and password = '%s';", email, password)
 
 	a := author.Author{}
