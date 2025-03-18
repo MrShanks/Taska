@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/MrShanks/Taska/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -25,14 +26,16 @@ func runImportCmd(cmd *cobra.Command, args []string) {
 	ctx := context.Background()
 	apiClient := NewApiClient()
 
-	err := importTasks(apiClient, ctx, "/import", args[0])
+	token := utils.ReadToken()
+
+	err := importTasks(apiClient, ctx, "/import", args[0], token)
 	if err != nil {
 		cmd.Printf("error running importTasks: %v", err)
 		return
 	}
 }
 
-func importTasks(taskcli *Taskcli, ctx context.Context, endpoint, path string) error {
+func importTasks(taskcli *Taskcli, ctx context.Context, endpoint, path, token string) error {
 	taskcli.ServerURL.Path = endpoint
 
 	file, err := os.Open(path)
@@ -50,6 +53,8 @@ func importTasks(taskcli *Taskcli, ctx context.Context, endpoint, path string) e
 	if err != nil {
 		return fmt.Errorf("failed to create HTTP request: %v", err)
 	}
+
+	request.Header.Set("token", token)
 
 	switch ext := filepath.Ext(path); ext {
 	case ".yaml":

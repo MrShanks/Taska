@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 
+	"github.com/MrShanks/Taska/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -18,6 +19,8 @@ var modCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx := context.Background()
 		apiClient := NewApiClient()
+
+		token := utils.ReadToken()
 
 		id, err := cmd.Flags().GetString("id")
 		if err != nil {
@@ -33,17 +36,19 @@ var modCmd = &cobra.Command{
 
 		body := &bytes.Buffer{}
 		body.Write([]byte(fmt.Sprintf(`{"title":"%s","desc":"%s"}`, title, desc)))
-		cmd.Printf("%s", modTask(apiClient, ctx, fmt.Sprintf("/update/%s", id), body))
+		cmd.Printf("%s", modTask(apiClient, ctx, fmt.Sprintf("/update/%s", id), body, token))
 	},
 }
 
-func modTask(taskcli *Taskcli, ctx context.Context, endpoint string, body io.Reader) string {
+func modTask(taskcli *Taskcli, ctx context.Context, endpoint string, body io.Reader, token string) string {
 	taskcli.ServerURL.Path = endpoint
 
 	request, err := http.NewRequestWithContext(ctx, "PUT", taskcli.ServerURL.String(), body)
 	if err != nil {
 		return fmt.Sprintf("Couldn't create request: %v\n", err)
 	}
+
+	request.Header.Set("token", token)
 
 	response, err := taskcli.HttpClient.Do(request)
 	if err != nil {
