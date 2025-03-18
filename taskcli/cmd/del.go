@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/MrShanks/Taska/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -18,22 +19,26 @@ var delCmd = &cobra.Command{
 		ctx := context.Background()
 		apiClient := NewApiClient()
 
+		token := utils.ReadToken()
+
 		id, err := cmd.Flags().GetString("id")
 		if err != nil {
 			cmd.Printf("Couldn't retrieve id flag: %v", err)
 		}
 
-		cmd.Printf("%s", delTask(apiClient, ctx, fmt.Sprintf("/delete/%s", id)))
+		cmd.Printf("%s", delTask(apiClient, ctx, fmt.Sprintf("/delete/%s", id), token))
 	},
 }
 
-func delTask(taskcli *Taskcli, ctx context.Context, endpoint string) string {
+func delTask(taskcli *Taskcli, ctx context.Context, endpoint, token string) string {
 	taskcli.ServerURL.Path = endpoint
 
 	request, err := http.NewRequestWithContext(ctx, "DELETE", taskcli.ServerURL.String(), nil)
 	if err != nil {
 		return fmt.Sprintf("Couldn't create request: %v", err)
 	}
+
+	request.Header.Set("token", token)
 
 	response, err := taskcli.HttpClient.Do(request)
 	if err != nil {
