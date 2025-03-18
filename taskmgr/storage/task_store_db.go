@@ -64,7 +64,7 @@ func (db *TaskStore) New(task *task.Task) uuid.UUID {
 		log.Printf("Couldn't find a match: %v", err)
 	}
 
-	query := fmt.Sprintf("insert into task (author_id, title, description) values ('%s', '%s', '%s');", ID, task.Title, task.Desc)
+	query := fmt.Sprintf("INSERT INTO task (author_id, title, description) VALUES ('%s', '%s', '%s');", ID, task.Title, task.Desc)
 	_, err = db.Conn.Exec(context.Background(), query)
 	if err != nil {
 		log.Printf("Could not insert new record into the database %v", err)
@@ -95,9 +95,9 @@ func (db *TaskStore) Update(id, title, desc string) (*task.Task, error) {
 
 	var updatedTask task.Task
 
-	err = db.Conn.QueryRow(context.Background(), query).Scan(&updatedTask.ID, &updatedTask.Title, &updatedTask.Desc)
+	err = db.Conn.QueryRow(context.Background(), query).Scan(&updatedTask.ID, &updatedTask.Title, &updatedTask.Desc, &updatedTask.AuthorID)
 	if err != nil {
-		return nil, fmt.Errorf("error updating task: %v", err)
+		return nil, fmt.Errorf("error querying updated task: %v", err)
 	}
 
 	return &updatedTask, nil

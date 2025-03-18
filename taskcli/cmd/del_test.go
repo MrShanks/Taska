@@ -57,7 +57,7 @@ func TestDelTask(t *testing.T) {
 				HttpClient: mockClient,
 			}
 
-			got := delTask(taskcli, context.Background(), "/delete")
+			got := delTask(taskcli, context.Background(), "/delete", "notoken")
 			if got != tt.want {
 				t.Errorf("got %q, want %q", got, tt.want)
 			}
