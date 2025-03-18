@@ -91,7 +91,7 @@ func (db *TaskStore) Update(id, title, desc string) (*task.Task, error) {
 		return nil, fmt.Errorf("task with ID %v does not exist", UUID)
 	}
 
-	query = fmt.Sprintf("SELECT * FROM tasks WHERE id = '%s';", id)
+	query = fmt.Sprintf("SELECT * FROM task WHERE id = '%s';", id)
 
 	var updatedTask task.Task
 
