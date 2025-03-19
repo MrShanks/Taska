@@ -56,22 +56,31 @@ func (db *TaskStore) GetTasks() []*task.Task {
 
 func (db *TaskStore) New(task *task.Task) uuid.UUID {
 	// To be removed when proper user logic is implemented
-	queryID := "SELECT id FROM author WHERE email = 'marco@rossi.com';"
-	var ID string
+	query := "SELECT id FROM author WHERE email = 'marco@rossi.com';"
+	var authorID string
 
-	err := db.Conn.QueryRow(context.Background(), queryID).Scan(&ID)
+	err := db.Conn.QueryRow(context.Background(), query).Scan(&authorID)
 	if err == pgx.ErrNoRows {
 		log.Printf("Couldn't find a match: %v", err)
 	}
 
-	query := fmt.Sprintf("INSERT INTO task (author_id, title, description) VALUES ('%s', '%s', '%s');", ID, task.Title, task.Desc)
+	query = fmt.Sprintf("INSERT INTO task (title, description, author_id) VALUES ('%s', '%s', '%s');", task.Title, task.Desc, authorID)
 	_, err = db.Conn.Exec(context.Background(), query)
 	if err != nil {
 		log.Printf("Could not insert new record into the database %v", err)
 		return uuid.Nil
 	}
 
-	return task.ID
+	var taskID uuid.UUID
+
+	query = fmt.Sprintf("SELECT id FROM task WHERE title = '%s'", task.Title)
+
+	err = db.Conn.QueryRow(context.Background(), query).Scan(&taskID)
+	if err == pgx.ErrNoRows {
+		log.Printf("Couldn't find new task ID: %v", err)
+	}
+
+	return taskID
 }
 
 func (db *TaskStore) Update(id, title, desc string) (*task.Task, error) {
