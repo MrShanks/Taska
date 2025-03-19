@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -79,33 +80,58 @@ func getFlags(cmd *cobra.Command, required int) (string, string, error) {
 	return title, desc, nil
 }
 
-func fetch(taskcli *Taskcli, ctx context.Context, endpoint string, result any) error {
+func fetch(taskcli *Taskcli, ctx context.Context, endpoint string, result any, token string) error {
 	taskcli.ServerURL.Path = endpoint
 
 	request, err := http.NewRequestWithContext(ctx, "GET", taskcli.ServerURL.String(), nil)
 	if err != nil {
-		return fmt.Errorf("Couldn't create request: %v", err)
+		return fmt.Errorf("couldn't create request: %v", err)
 	}
+
+	request.Header.Set("token", token)
 
 	response, err := taskcli.HttpClient.Do(request)
 	if err != nil {
-		return fmt.Errorf("Couldn't get a response from the server: %v", err)
+		return fmt.Errorf("couldn't get a response from the server: %v", err)
 	}
 	defer response.Body.Close()
 
-	if response.StatusCode != http.StatusOK {
+	if response.StatusCode == http.StatusNotFound {
 		return fmt.Errorf("task not found, status code: %v", response.StatusCode)
+	}
+
+	if response.StatusCode == http.StatusUnauthorized {
+		return fmt.Errorf("token might be invalid, empty or expired")
 	}
 
 	data, err := io.ReadAll(response.Body)
 	if err != nil {
-		return fmt.Errorf("Couldn't read response body: %v", err)
+		return fmt.Errorf("couldn't read response body: %v", err)
 	}
 
 	err = json.Unmarshal(data, result)
 	if err != nil {
-		return fmt.Errorf("Couldn't unmarshal: %v", err)
+		return fmt.Errorf("couldn't unmarshal: %v", err)
 	}
 
 	return nil
+}
+
+func makeRequest(taskcli *Taskcli, ctx context.Context, data map[string]string) (*http.Response, error) {
+	body, err := json.Marshal(data)
+	if err != nil {
+		return nil, fmt.Errorf("Couldn't marshal data into the request body: %v", err)
+	}
+
+	request, err := http.NewRequestWithContext(ctx, "POST", taskcli.ServerURL.String(), bytes.NewBuffer(body))
+	if err != nil {
+		return nil, fmt.Errorf("Couldn't create request: %v", err)
+	}
+
+	response, err := taskcli.HttpClient.Do(request)
+	if err != nil {
+		return nil, fmt.Errorf("Couldn't get a response from the server: %v", err)
+	}
+
+	return response, nil
 }

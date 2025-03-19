@@ -13,6 +13,7 @@ type Taskcli struct {
 	HttpClient *http.Client
 	Cfg        *utils.Config
 	ServerURL  url.URL
+	Token      string
 }
 
 func NewApiClient() *Taskcli {

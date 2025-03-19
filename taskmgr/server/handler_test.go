@@ -101,7 +101,7 @@ func TestUpdateTaskHandler(t *testing.T) {
 		body := &bytes.Buffer{}
 		body.Write([]byte(`{"title":"new title","desc":"new description"}`))
 
-		request, err := http.NewRequestWithContext(context.Background(), http.MethodPut, fmt.Sprintf("/delete/%s", task1.ID), body)
+		request, err := http.NewRequestWithContext(context.Background(), http.MethodPut, fmt.Sprintf("/update/%s", task1.ID), body)
 		if err != nil {
 			t.Errorf("couldn't create request")
 		}
@@ -111,7 +111,7 @@ func TestUpdateTaskHandler(t *testing.T) {
 
 		// Assert
 		got := response.Body.String()
-		want := fmt.Sprintf(`{"id":"%s","title":"new title","desc":"new description"}`, task1.ID.String())
+		want := fmt.Sprintf(`{"id":"%s","title":"new title","desc":"new description","AuthorID":"00000000-0000-0000-0000-000000000000"}`, task1.ID.String())
 
 		if got != want {
 			t.Errorf("got %q, want %q", got, want)

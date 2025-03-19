@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"os"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -12,29 +11,17 @@ import (
 	"github.com/MrShanks/Taska/common/task"
 )
 
-type PostgresDatabase struct {
+type TaskStore struct {
 	Conn *pgx.Conn
 }
 
-func (db *PostgresDatabase) Connect(db_url string) error {
-	password := os.Getenv("POSTGRES_PWD")
-	dburl := fmt.Sprintf(db_url, password)
-	var err error
-
-	db.Conn, err = pgx.Connect(context.Background(), dburl)
-	if err != nil {
-		return fmt.Errorf("error connecting to the database: %v", err)
-	}
-
-	return nil
-}
-
-func (db *PostgresDatabase) GetOne(id string) (*task.Task, error) {
+func (db *TaskStore) GetOne(id string) (*task.Task, error) {
 	query := fmt.Sprintf("SELECT * FROM task WHERE id = '%s';", id)
 
 	t := task.Task{}
+	var author string
 
-	row := db.Conn.QueryRow(context.Background(), query).Scan(&t.ID, &t.Title, &t.Desc)
+	row := db.Conn.QueryRow(context.Background(), query).Scan(&t.ID, &t.Title, &t.Desc, &author)
 	if row == pgx.ErrNoRows {
 		return nil, fmt.Errorf("task not found")
 	}
@@ -42,7 +29,7 @@ func (db *PostgresDatabase) GetOne(id string) (*task.Task, error) {
 	return &t, nil
 }
 
-func (db *PostgresDatabase) GetTasks() []*task.Task {
+func (db *TaskStore) GetTasks() []*task.Task {
 	var fetchedTasks []*task.Task
 	query := "SELECT * FROM task"
 
@@ -55,8 +42,9 @@ func (db *PostgresDatabase) GetTasks() []*task.Task {
 
 	for rows.Next() {
 		r := &task.Task{}
+		var author string
 
-		err := rows.Scan(&r.ID, &r.Title, &r.Desc)
+		err := rows.Scan(&r.ID, &r.Title, &r.Desc, &author)
 		if err != nil {
 			log.Printf("%v", err)
 		}
@@ -66,19 +54,27 @@ func (db *PostgresDatabase) GetTasks() []*task.Task {
 	return fetchedTasks
 }
 
-func (db *PostgresDatabase) New(task *task.Task) uuid.UUID {
-	query := fmt.Sprintf("INSERT INTO task (title, description) VALUES ('%s', '%s');", task.Title, task.Desc)
+func (db *TaskStore) New(task *task.Task) uuid.UUID {
+	// To be removed when proper user logic is implemented
+	queryID := "SELECT id FROM author WHERE email = 'marco@rossi.com';"
+	var ID string
 
-	_, err := db.Conn.Exec(context.Background(), query)
+	err := db.Conn.QueryRow(context.Background(), queryID).Scan(&ID)
+	if err == pgx.ErrNoRows {
+		log.Printf("Couldn't find a match: %v", err)
+	}
+
+	query := fmt.Sprintf("INSERT INTO task (author_id, title, description) VALUES ('%s', '%s', '%s');", ID, task.Title, task.Desc)
+	_, err = db.Conn.Exec(context.Background(), query)
 	if err != nil {
-		log.Printf("%v", err)
+		log.Printf("Could not insert new record into the database %v", err)
 		return uuid.Nil
 	}
 
 	return task.ID
 }
 
-func (db *PostgresDatabase) Update(id, title, desc string) (*task.Task, error) {
+func (db *TaskStore) Update(id, title, desc string) (*task.Task, error) {
 	UUID, err := uuid.Parse(id)
 	if err != nil {
 		return nil, fmt.Errorf("invalid uuid: %s", id)
@@ -95,19 +91,19 @@ func (db *PostgresDatabase) Update(id, title, desc string) (*task.Task, error) {
 		return nil, fmt.Errorf("task with ID %v does not exist", UUID)
 	}
 
-	query = fmt.Sprintf("SELECT * FROM tasks WHERE id = '%s';", id)
+	query = fmt.Sprintf("SELECT * FROM task WHERE id = '%s';", id)
 
 	var updatedTask task.Task
 
-	err = db.Conn.QueryRow(context.Background(), query).Scan(&updatedTask.ID, &updatedTask.Title, &updatedTask.Desc)
+	err = db.Conn.QueryRow(context.Background(), query).Scan(&updatedTask.ID, &updatedTask.Title, &updatedTask.Desc, &updatedTask.AuthorID)
 	if err != nil {
-		return nil, fmt.Errorf("error updating task: %v", err)
+		return nil, fmt.Errorf("error querying updated task: %v", err)
 	}
 
 	return &updatedTask, nil
 }
 
-func (db *PostgresDatabase) Delete(id string) error {
+func (db *TaskStore) Delete(id string) error {
 	UUID, err := uuid.Parse(id)
 	if err != nil {
 		return fmt.Errorf("invalid uuid: %s", id)
@@ -128,7 +124,7 @@ func (db *PostgresDatabase) Delete(id string) error {
 	return nil
 }
 
-func (db *PostgresDatabase) BulkImport(tasks []*task.Task) {
+func (db *TaskStore) BulkImport(tasks []*task.Task) {
 	for _, t := range tasks {
 		query := fmt.Sprintf("INSERT INTO task (title, description) VALUES ('%s', '%s');", t.Title, t.Desc)
 

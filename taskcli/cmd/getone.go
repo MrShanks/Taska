@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/MrShanks/Taska/common/task"
+	"github.com/MrShanks/Taska/utils"
 	"github.com/spf13/cobra"
 	"io"
 	"log"
@@ -22,7 +23,9 @@ var getOneCmd = &cobra.Command{
 		apiClient := NewApiClient()
 		ctx := context.Background()
 
-		output := FetchOne(apiClient, ctx, fmt.Sprintf("/task/%s", args[0]))
+		token := utils.ReadToken()
+
+		output := FetchOne(apiClient, ctx, fmt.Sprintf("/task/%s", args[0]), token)
 		outJson, err := json.Marshal(output)
 		cobra.CheckErr(err)
 
@@ -33,34 +36,39 @@ var getOneCmd = &cobra.Command{
 func getCompletion(_ *cobra.Command, _ []string, _ string) ([]string, cobra.ShellCompDirective) {
 	apiClient := NewApiClient()
 	ctx := context.Background()
-	titles := GetTaskUUIDs(apiClient, ctx, "/tasks")
+
+	token := utils.ReadToken()
+
+	titles := GetTaskUUIDs(apiClient, ctx, "/tasks", token)
 
 	return titles, cobra.ShellCompDirectiveNoFileComp
 }
 
-func GetTaskUUIDs(taskcli *Taskcli, ctx context.Context, endpoint string) []string {
+func GetTaskUUIDs(taskcli *Taskcli, ctx context.Context, endpoint string, token string) []string {
 	taskcli.ServerURL.Path = endpoint
 
 	request, err := http.NewRequestWithContext(ctx, "GET", taskcli.ServerURL.String(), nil)
 	if err != nil {
-		fmt.Printf("Couldn't create request: %v", err)
+		fmt.Printf("Couldn't create request: %v\n", err)
 	}
+
+	request.Header.Set("token", token)
 
 	response, err := taskcli.HttpClient.Do(request)
 	if err != nil {
-		fmt.Printf("Couldn't get a response from the server: %v", err)
+		fmt.Printf("Couldn't get a response from the server: %v\n", err)
 	}
 
 	bodyBytes, err := io.ReadAll(response.Body)
 	if err != nil {
-		fmt.Printf("Couldn't read response body: %v", err)
+		fmt.Printf("Couldn't read response body: %v\n", err)
 	}
 	defer response.Body.Close()
 
 	var tasks []*task.Task
 	err = json.Unmarshal(bodyBytes, &tasks)
 	if err != nil {
-		log.Printf("Couldn't decode JSON: %v", err)
+		log.Printf("Couldn't decode JSON: %v\n", err)
 	}
 
 	uuids := make([]string, len(tasks))
@@ -71,12 +79,12 @@ func GetTaskUUIDs(taskcli *Taskcli, ctx context.Context, endpoint string) []stri
 	return uuids
 }
 
-func FetchOne(taskcli *Taskcli, ctx context.Context, endpoint string) *task.Task {
+func FetchOne(taskcli *Taskcli, ctx context.Context, endpoint string, token string) *task.Task {
 	var t task.Task
 
-	err := fetch(taskcli, ctx, endpoint, &t)
+	err := fetch(taskcli, ctx, endpoint, &t, token)
 	if err != nil {
-		log.Printf("Error fetching task: %v", err)
+		log.Printf("Error fetching task: %v\n", err)
 		return nil
 	}
 

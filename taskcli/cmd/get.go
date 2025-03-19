@@ -4,10 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"os"
 
 	"github.com/MrShanks/Taska/common/task"
+	"github.com/MrShanks/Taska/utils"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
 )
@@ -24,7 +24,14 @@ var getCmd = &cobra.Command{
 		format, err := cmd.Flags().GetString("export")
 		cobra.CheckErr(err)
 
-		data := FetchTasks(apiClient, ctx, "/tasks")
+		token := utils.ReadToken()
+
+		data := FetchTasks(apiClient, ctx, "/tasks", token)
+
+		if data == nil {
+			cmd.Printf("Server response was empty\n")
+			return
+		}
 
 		var bytes []byte
 
@@ -33,17 +40,17 @@ var getCmd = &cobra.Command{
 			case "yaml":
 				bytes, err = yaml.Marshal(data)
 				if err != nil {
-					log.Printf("error during yaml marshalling: %v", err)
+					cmd.Printf("Error during yaml marshalling: %v\n", err)
 				}
 				dumpOnFile("export", format, bytes)
 			case "json":
 				bytes, err = json.MarshalIndent(data, "", "	")
 				if err != nil {
-					log.Printf("couldn't marshal indent: %v", err)
+					cmd.Printf("Couldn't marshal indent: %v\n", err)
 				}
 				dumpOnFile("export", format, bytes)
 			default:
-				cmd.Printf("Unsupported file format: %s choose between json|yaml", format)
+				cmd.Printf("Unsupported file format: %s choose between json|yaml\n", format)
 			}
 			return
 		}
@@ -55,30 +62,12 @@ var getCmd = &cobra.Command{
 	},
 }
 
-func isFlagSet(flagValue string) bool {
-	return flagValue != ""
-}
-
-func dumpOnFile(filepath, format string, data []byte) {
-	file, err := os.Create(fmt.Sprintf("%s.%s", filepath, format))
-	if err != nil {
-		log.Printf("Couldn't create an export file: %v", err)
-	}
-
-	_, err = file.WriteString(fmt.Sprintf("%s\n", data))
-	if err != nil {
-		log.Printf("cannot write to %s, error: %v", file.Name(), err)
-	}
-
-	log.Printf("file created: %s.%s", "export", format)
-}
-
-func FetchTasks(taskcli *Taskcli, ctx context.Context, endpoint string) []*task.Task {
+func FetchTasks(taskcli *Taskcli, ctx context.Context, endpoint string, token string) []*task.Task {
 	var tasks []*task.Task
 
-	err := fetch(taskcli, ctx, endpoint, &tasks)
+	err := fetch(taskcli, ctx, endpoint, &tasks, token)
 	if err != nil {
-		log.Printf("Error fetching tasks: %v", err)
+		fmt.Printf("Error fetching tasks: %v\n", err)
 		return nil
 	}
 
@@ -89,4 +78,22 @@ func init() {
 	getCmd.Flags().StringP("export", "e", "", "export tasks in either json|yaml")
 
 	rootCmd.AddCommand(getCmd)
+}
+
+func isFlagSet(flagValue string) bool {
+	return flagValue != ""
+}
+
+func dumpOnFile(filepath, format string, data []byte) {
+	file, err := os.Create(fmt.Sprintf("%s.%s", filepath, format))
+	if err != nil {
+		fmt.Printf("Couldn't create an export file: %v", err)
+	}
+
+	_, err = file.WriteString(fmt.Sprintf("%s\n", data))
+	if err != nil {
+		fmt.Printf("cannot write to %s, error: %v\n", file.Name(), err)
+	}
+
+	fmt.Printf("file created: %s.%s\n", "export", format)
 }

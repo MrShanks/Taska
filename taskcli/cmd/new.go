@@ -11,6 +11,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/MrShanks/Taska/common/task"
+	"github.com/MrShanks/Taska/utils"
 )
 
 var newCmd = &cobra.Command{
@@ -26,21 +27,20 @@ func runNewCmd(cmd *cobra.Command, args []string) {
 	apiClient := NewApiClient()
 
 	title, desc, err := getFlags(cmd, 0)
-	if err != nil {
-		cmd.Printf("Error: %v\n", err)
-		return
-	}
+	cobra.CheckErr(err)
 
 	if title == "" {
 		cmd.Printf("A title must be provided to create a new task\n")
 		return
 	}
 
-	result := newTask(apiClient, ctx, "/new", title, desc)
+	token := utils.ReadToken()
+
+	result := newTask(apiClient, ctx, "/new", title, desc, token)
 	cmd.Printf("%s\n", result)
 }
 
-func newTask(taskcli *Taskcli, ctx context.Context, endpoint, title, desc string) string {
+func newTask(taskcli *Taskcli, ctx context.Context, endpoint, title, desc, token string) string {
 	taskcli.ServerURL.Path = endpoint
 
 	jsonTask, err := json.Marshal(task.New(title, desc))
@@ -52,6 +52,8 @@ func newTask(taskcli *Taskcli, ctx context.Context, endpoint, title, desc string
 	if err != nil {
 		return fmt.Sprintf("Couldn't create request: %v", err)
 	}
+
+	request.Header.Set("token", token)
 
 	response, err := taskcli.HttpClient.Do(request)
 	if err != nil {

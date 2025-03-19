@@ -7,9 +7,11 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/MrShanks/Taska/common/task"
 	"github.com/google/uuid"
 	"gopkg.in/yaml.v3"
+
+	"github.com/MrShanks/Taska/common/author"
+	"github.com/MrShanks/Taska/common/task"
 )
 
 const contentType = "Content-Type"
@@ -60,13 +62,7 @@ func GetAllTasksHandler(store task.Store) http.HandlerFunc {
 		log.Printf("Got request on /tasks endpoint\n")
 
 		tasks := store.GetTasks()
-		if tasks == nil {
-			_, err := w.Write([]byte("Could't able to reach database"))
-			if err != nil {
-				log.Printf("Error: %v", err)
-			}
-			return
-		}
+
 		jsonTasks, err := json.Marshal(tasks)
 		if err != nil {
 			log.Printf("Couldn't Marshal tasks into json format: %v", err)
@@ -103,9 +99,10 @@ func NewTaskHandler(store task.Store) http.HandlerFunc {
 			http.Error(w, "Invalid JSON format", http.StatusBadRequest)
 			return
 		}
+
 		newTaskID := store.New(&newTask)
 		if newTaskID == uuid.Nil {
-			_, err := w.Write([]byte("Could't able to reach database"))
+			_, err := w.Write([]byte("Couldn't reach the database"))
 			if err != nil {
 				log.Printf("Error: %v", err)
 			}
@@ -192,10 +189,6 @@ func DeleteTaskHandler(store task.Store) http.HandlerFunc {
 
 func ImportTaskHandler(store task.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if err := isAllowedMethod(http.MethodPost, w, r); err != nil {
-			return
-		}
-
 		log.Printf("Got request on /import endpoint\n")
 
 		body, err := io.ReadAll(r.Body)
@@ -227,6 +220,87 @@ func ImportTaskHandler(store task.Store) http.HandlerFunc {
 		store.BulkImport(tasks)
 
 		w.WriteHeader(http.StatusCreated)
+	}
+}
+
+func Signup(store author.Store) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if err := isAllowedMethod(http.MethodPost, w, r); err != nil {
+			return
+		}
+
+		log.Printf("Got request on /signup endpoint\n")
+
+		body, err := io.ReadAll(r.Body)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			log.Printf("Couldn't read the body. Error type: %v", err)
+			return
+		}
+		defer r.Body.Close()
+
+		newAuthor := author.Author{}
+
+		err = json.Unmarshal(body, &newAuthor)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			log.Printf("Couldn't unmarshal the body. Error type: %s", err)
+			return
+		}
+
+		if err = store.SignUp(&newAuthor); err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			log.Printf("Couldn't sign you up: %v", err)
+			return
+		}
+
+		w.WriteHeader(http.StatusCreated)
+		if _, err := w.Write([]byte("Signup successful!")); err != nil {
+			log.Printf("Couldn't write signup response: %v", err)
+		}
+	}
+}
+
+func Signin(store author.Store) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if err := isAllowedMethod(http.MethodPost, w, r); err != nil {
+			return
+		}
+
+		log.Printf("Got request on /signin endpoint")
+
+		body, err := io.ReadAll(r.Body)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			log.Printf("Couldn't read the body. Error type: %v", err)
+			return
+		}
+		defer r.Body.Close()
+
+		signInAuthor := author.Author{}
+
+		err = json.Unmarshal(body, &signInAuthor)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			log.Printf("Couldn't unmarshal the body. Error type: %s", err)
+			return
+		}
+
+		if err = store.SignIn(signInAuthor.Email, signInAuthor.Password); err != nil {
+			w.WriteHeader(http.StatusUnauthorized)
+			log.Printf("Error during authentication: %v", err)
+			return
+		}
+
+		token := uuid.New().String()
+		loggedAuthors[token] = signInAuthor.Email
+
+		w.Header().Set("token", token)
+		w.WriteHeader(http.StatusOK)
+
+		if _, err := w.Write([]byte("Login successful!")); err != nil {
+			log.Printf("Couldn't write login response: %v", err)
+		}
 	}
 }
 
