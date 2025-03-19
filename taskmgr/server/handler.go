@@ -274,6 +274,11 @@ func Signin(store author.Store) http.HandlerFunc {
 }
 
 func homeHandler(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/" {
+		http.NotFound(w, r)
+		return
+	}
+
 	log.Println("Got request on / endpoint")
 
 	w.WriteHeader(http.StatusOK)
