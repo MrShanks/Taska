@@ -9,20 +9,20 @@ import (
 
 func InitMuxWithRoutes(taskStore task.Store, authorStore author.Store) *http.ServeMux {
 	webMux := http.NewServeMux()
-	webMux.HandleFunc("/", homeHandler)
-	webMux.HandleFunc("/favicon.ico", faviconHandler)
+	webMux.HandleFunc("GET /", homeHandler)
+	webMux.HandleFunc("GET /favicon.ico", faviconHandler)
 
 	// Tasks related Routes
-	webMux.HandleFunc("/tasks", LoggedInOnly(GetAllTasksHandler(taskStore)))
-	webMux.HandleFunc("/task/{task_id}", LoggedInOnly(GetOneTaskHandler(taskStore)))
-	webMux.HandleFunc("/new", LoggedInOnly(NewTaskHandler(taskStore)))
-	webMux.HandleFunc("/import", LoggedInOnly(ImportTaskHandler(taskStore)))
-	webMux.HandleFunc("/delete/{task_id}", LoggedInOnly(DeleteTaskHandler(taskStore)))
-	webMux.HandleFunc("/update/{task_id}", LoggedInOnly(UpdateTaskHandler(taskStore)))
+	webMux.HandleFunc("GET /tasks", LoggedInOnly(GetAllTasksHandler(taskStore)))
+	webMux.HandleFunc("GET /task/{task_id}", LoggedInOnly(GetOneTaskHandler(taskStore)))
+	webMux.HandleFunc("POST /new", LoggedInOnly(NewTaskHandler(taskStore)))
+	webMux.HandleFunc("POST /import", LoggedInOnly(ImportTaskHandler(taskStore)))
+	webMux.HandleFunc("DELETE /delete/{task_id}", LoggedInOnly(DeleteTaskHandler(taskStore)))
+	webMux.HandleFunc("PUT /update/{task_id}", LoggedInOnly(UpdateTaskHandler(taskStore)))
 
 	// Users related Routes
-	webMux.HandleFunc("/signup", Signup(authorStore))
-	webMux.HandleFunc("/signin", Signin(authorStore))
+	webMux.HandleFunc("POST /signup", Signup(authorStore))
+	webMux.HandleFunc("POST /signin", Signin(authorStore))
 
 	return webMux
 }

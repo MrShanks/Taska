@@ -19,13 +19,6 @@ const appJson = "application/json"
 
 func GetOneTaskHandler(store task.Store) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodGet {
-			log.Printf("Method: %s is not allowed on /task endpoint\n", r.Method)
-
-			w.WriteHeader(http.StatusMethodNotAllowed)
-			return
-		}
-
 		log.Printf("Got request on /task endpoint\n")
 
 		taskID := strings.Split(r.URL.Path, "/")[2]
@@ -55,10 +48,6 @@ func GetOneTaskHandler(store task.Store) func(http.ResponseWriter, *http.Request
 
 func GetAllTasksHandler(store task.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if err := isAllowedMethod(http.MethodGet, w, r); err != nil {
-			return
-		}
-
 		log.Printf("Got request on /tasks endpoint\n")
 
 		tasks := store.GetTasks()
@@ -80,10 +69,6 @@ func GetAllTasksHandler(store task.Store) http.HandlerFunc {
 
 func NewTaskHandler(store task.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if err := isAllowedMethod(http.MethodPost, w, r); err != nil {
-			return
-		}
-
 		log.Printf("Got request on /new endpoint\n")
 
 		body, err := io.ReadAll(r.Body)
@@ -121,10 +106,6 @@ func NewTaskHandler(store task.Store) http.HandlerFunc {
 
 func UpdateTaskHandler(store task.Store) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if err := isAllowedMethod(http.MethodPut, w, r); err != nil {
-			return
-		}
-
 		log.Printf("Got request on /update endpoint\n")
 
 		taskID := strings.Split(r.URL.Path, "/")[2]
@@ -168,10 +149,6 @@ func UpdateTaskHandler(store task.Store) func(http.ResponseWriter, *http.Request
 
 func DeleteTaskHandler(store task.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if err := isAllowedMethod(http.MethodDelete, w, r); err != nil {
-			return
-		}
-
 		log.Printf("Got request on /delete endpoint\n")
 
 		taskID := strings.Split(r.URL.Path, "/")[2]
@@ -225,10 +202,6 @@ func ImportTaskHandler(store task.Store) http.HandlerFunc {
 
 func Signup(store author.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if err := isAllowedMethod(http.MethodPost, w, r); err != nil {
-			return
-		}
-
 		log.Printf("Got request on /signup endpoint\n")
 
 		body, err := io.ReadAll(r.Body)
@@ -263,10 +236,6 @@ func Signup(store author.Store) http.HandlerFunc {
 
 func Signin(store author.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if err := isAllowedMethod(http.MethodPost, w, r); err != nil {
-			return
-		}
-
 		log.Printf("Got request on /signin endpoint")
 
 		body, err := io.ReadAll(r.Body)
@@ -319,12 +288,4 @@ func faviconHandler(w http.ResponseWriter, r *http.Request) {
 	// This is needed because browser always issue a second
 	// http request to get the favicon for a website
 	w.WriteHeader(http.StatusNoContent)
-}
-
-func isAllowedMethod(httpMethod string, w http.ResponseWriter, r *http.Request) error {
-	if r.Method != httpMethod {
-		log.Printf("Method: %s is not allowed\n", r.Method)
-		w.WriteHeader(http.StatusMethodNotAllowed)
-	}
-	return nil
 }
