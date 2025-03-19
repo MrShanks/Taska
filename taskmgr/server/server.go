@@ -34,14 +34,30 @@ func ConnectDB(dbURL string) (*pgx.Conn, error) {
 	password := os.Getenv("POSTGRES_PWD")
 	dburl := fmt.Sprintf(dbURL, password)
 
-	var err error
+	ctxConnection, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
 
-	conn, err := pgx.Connect(context.Background(), dburl)
-	if err != nil {
+	chConn := make(chan *pgx.Conn)
+	chErr := make(chan error)
+	go func() {
+		conn, err := pgx.Connect(ctxConnection, dburl)
+		if err != nil {
+			chErr <- err
+			return
+		}
+		chConn <- conn
+	}()
+
+	select {
+	case conn := <-chConn:
+		fmt.Printf("connection established\n")
+		return conn, nil
+	case err := <-chErr:
+		fmt.Printf("connection failed: ")
 		return nil, err
+	case <-ctxConnection.Done():
+		return nil, fmt.Errorf("timeout reached: %v", ctxConnection.Err())
 	}
-
-	return conn, nil
 }
 
 // Listen initialize the server and waits for requests
