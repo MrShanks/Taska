@@ -111,6 +111,8 @@ func TestUpdateTaskHandler(t *testing.T) {
 		}
 		response := httptest.NewRecorder()
 
+		request.SetPathValue("id", task1.ID.String())
+
 		handler(response, request)
 
 		// Assert
