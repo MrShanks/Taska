@@ -5,6 +5,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/google/uuid"
 	"gopkg.in/yaml.v3"
@@ -20,7 +21,7 @@ func GetOneTaskHandler(store task.Store) func(http.ResponseWriter, *http.Request
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Got request on /task endpoint\n")
 
-		taskID := r.PathValue("task_id")
+		taskID := strings.Split(r.URL.Path, "/")[2]
 
 		selectedTask, err := store.GetOne(taskID)
 		if err != nil {
@@ -107,7 +108,7 @@ func UpdateTaskHandler(store task.Store) func(http.ResponseWriter, *http.Request
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Got request on /update endpoint\n")
 
-		taskID := r.PathValue("task_id")
+		taskID := strings.Split(r.URL.Path, "/")[2]
 
 		changes := task.Task{}
 
@@ -150,7 +151,7 @@ func DeleteTaskHandler(store task.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Got request on /delete endpoint\n")
 
-		taskID := r.PathValue("task_id")
+		taskID := strings.Split(r.URL.Path, "/")[2]
 
 		err := store.Delete(taskID)
 		if err != nil {

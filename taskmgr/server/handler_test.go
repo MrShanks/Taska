@@ -85,7 +85,11 @@ func TestGetTasksHandler(t *testing.T) {
 func TestUpdateTaskHandler(t *testing.T) {
 	t.Run("PUT request on /update/{task_id} updates the selected task", func(t *testing.T) {
 		// Arrange
-		task1 := task.New("before change", "before the changes have been applied")
+		task1 := &task.Task{
+			ID:    uuid.New(),
+			Title: "before change",
+			Desc:  "before the changes have been applied",
+		}
 
 		tasks := map[uuid.UUID]*task.Task{
 			task1.ID: task1,
