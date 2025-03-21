@@ -85,7 +85,6 @@ func NewTaskHandler(store task.Store, astore author.Store) http.HandlerFunc {
 		}
 
 		token := r.Header.Get("Token")
-		log.Println(token)
 
 		authorID, err := astore.GetAuthorID(token)
 		if err != nil {
