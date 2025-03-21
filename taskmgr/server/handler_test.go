@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"time"
 
 	"github.com/google/uuid"
 
@@ -32,10 +31,7 @@ func TestNewTaskHandler(t *testing.T) {
 	// Act
 	handler := NewTaskHandler(&mockDatabase)
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	request, _ := http.NewRequestWithContext(ctx, http.MethodPost, "/new", bytes.NewBuffer(body))
+	request, _ := http.NewRequestWithContext(context.Background(), http.MethodPost, "/new", bytes.NewBuffer(body))
 	response := httptest.NewRecorder()
 
 	handler(response, request)
@@ -67,10 +63,7 @@ func TestGetTasksHandler(t *testing.T) {
 		// Act
 		handler := GetAllTasksHandler(&IMD)
 
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		defer cancel()
-
-		request, err := http.NewRequestWithContext(ctx, http.MethodGet, "/tasks", nil)
+		request, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "/tasks", nil)
 		if err != nil {
 			t.Errorf("couldn't create request")
 		}
@@ -108,10 +101,7 @@ func TestUpdateTaskHandler(t *testing.T) {
 		body := &bytes.Buffer{}
 		body.Write([]byte(`{"title":"new title","desc":"new description"}`))
 
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		defer cancel()
-
-		request, err := http.NewRequestWithContext(ctx, http.MethodPut, fmt.Sprintf("/update/%s", task1.ID), body)
+		request, err := http.NewRequestWithContext(context.Background(), http.MethodPut, fmt.Sprintf("/update/%s", task1.ID), body)
 		if err != nil {
 			t.Errorf("couldn't create request")
 		}
@@ -143,10 +133,7 @@ func TestGeneralHandler(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.desc, func(t *testing.T) {
-			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-			defer cancel()
-
-			request, err := http.NewRequestWithContext(ctx, "GET", test.endpoint, nil)
+			request, err := http.NewRequestWithContext(context.Background(), "GET", test.endpoint, nil)
 			if err != nil {
 				t.Errorf("couldn't create request")
 			}

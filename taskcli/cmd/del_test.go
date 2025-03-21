@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"net/url"
 	"testing"
-	"time"
 )
 
 // Mock HTTP Client by implementing RoundTripper
@@ -58,10 +57,7 @@ func TestDelTask(t *testing.T) {
 				HttpClient: mockClient,
 			}
 
-			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-			defer cancel()
-
-			got := delTask(taskcli, ctx, "/delete", "notoken")
+			got := delTask(taskcli, context.Background(), "/delete", "notoken")
 			if got != tt.want {
 				t.Errorf("got %q, want %q", got, tt.want)
 			}
