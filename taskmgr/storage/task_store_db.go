@@ -20,12 +20,11 @@ func (db *TaskStore) GetOne(id string) (*task.Task, error) {
 	query := fmt.Sprintf("SELECT * FROM task WHERE id = '%s';", id)
 
 	t := task.Task{}
-	var author string
 
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 
-	row := db.Conn.QueryRow(ctx, query).Scan(&t.ID, &t.Title, &t.Desc, &author)
+	row := db.Conn.QueryRow(ctx, query).Scan(&t.ID, &t.Title, &t.Desc, &t.AuthorID)
 	if row == pgx.ErrNoRows {
 		return nil, fmt.Errorf("task not found")
 	}
@@ -49,9 +48,8 @@ func (db *TaskStore) GetTasks() []*task.Task {
 
 	for rows.Next() {
 		r := &task.Task{}
-		var author string
 
-		err := rows.Scan(&r.ID, &r.Title, &r.Desc, &author)
+		err := rows.Scan(&r.ID, &r.Title, &r.Desc, &r.AuthorID)
 		if err != nil {
 			log.Printf("%v", err)
 		}
@@ -73,14 +71,10 @@ func (db *TaskStore) New(task *task.Task) uuid.UUID {
 		return uuid.Nil
 	}
 
-	ctx, cancel = context.WithTimeout(context.Background(), 2*time.Second)
-	defer cancel()
-
-	query = fmt.Sprintf("SELECT id FROM task WHERE title = '%s'", task.Title)
-
-	err = db.Conn.QueryRow(ctx, query).Scan(&task.ID)
-	if err == pgx.ErrNoRows {
-		log.Printf("Couldn't find a match: %v", err)
+	query = fmt.Sprintf("SELECT id FROM task WHERE title='%s'", task.Title)
+	row := db.Conn.QueryRow(ctx, query).Scan(&task.ID)
+	if row == pgx.ErrNoRows {
+		return uuid.Nil
 	}
 
 	return task.ID
