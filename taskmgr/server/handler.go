@@ -66,7 +66,7 @@ func GetAllTasksHandler(store task.Store) http.HandlerFunc {
 	}
 }
 
-func NewTaskHandler(store task.Store, astore author.Store) http.HandlerFunc {
+func NewTaskHandler(taskStore task.Store, authorStore author.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Got request on /new endpoint\n")
 
@@ -86,14 +86,14 @@ func NewTaskHandler(store task.Store, astore author.Store) http.HandlerFunc {
 
 		token := r.Header.Get("Token")
 
-		authorID, err := astore.GetAuthorID(token)
+		authorID, err := authorStore.GetAuthorID(token)
 		if err != nil {
 			log.Printf("error fetching author id: %v", err)
 		}
 
 		newTask.AuthorID = uuid.MustParse(authorID)
 
-		newTaskID := store.New(&newTask)
+		newTaskID := taskStore.New(&newTask)
 		if newTaskID == uuid.Nil {
 			_, err := w.Write([]byte("Couldn't reach the database"))
 			if err != nil {
