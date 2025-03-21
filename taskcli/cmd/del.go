@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/MrShanks/Taska/utils"
 	"github.com/spf13/cobra"
@@ -16,7 +17,9 @@ var delCmd = &cobra.Command{
 	Long:  "Delete a task by passing its id",
 
 	Run: func(cmd *cobra.Command, args []string) {
-		ctx := context.Background()
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
 		apiClient := NewApiClient()
 
 		token := utils.ReadToken()

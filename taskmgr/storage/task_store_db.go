@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -21,7 +22,10 @@ func (db *TaskStore) GetOne(id string) (*task.Task, error) {
 	t := task.Task{}
 	var author string
 
-	row := db.Conn.QueryRow(context.Background(), query).Scan(&t.ID, &t.Title, &t.Desc, &author)
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+
+	row := db.Conn.QueryRow(ctx, query).Scan(&t.ID, &t.Title, &t.Desc, &author)
 	if row == pgx.ErrNoRows {
 		return nil, fmt.Errorf("task not found")
 	}
@@ -33,7 +37,10 @@ func (db *TaskStore) GetTasks() []*task.Task {
 	var fetchedTasks []*task.Task
 	query := "SELECT * FROM task"
 
-	rows, err := db.Conn.Query(context.Background(), query)
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+
+	rows, err := db.Conn.Query(ctx, query)
 	if err != nil {
 		log.Printf("Error to query: %v", err)
 		return nil
@@ -59,13 +66,19 @@ func (db *TaskStore) New(task *task.Task) uuid.UUID {
 	queryID := "SELECT id FROM author WHERE email = 'marco@rossi.com';"
 	var ID string
 
-	err := db.Conn.QueryRow(context.Background(), queryID).Scan(&ID)
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+
+	err := db.Conn.QueryRow(ctx, queryID).Scan(&ID)
 	if err == pgx.ErrNoRows {
 		log.Printf("Couldn't find a match: %v", err)
 	}
 
+	ctx, cancel = context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+
 	query := fmt.Sprintf("INSERT INTO task (author_id, title, description) VALUES ('%s', '%s', '%s');", ID, task.Title, task.Desc)
-	_, err = db.Conn.Exec(context.Background(), query)
+	_, err = db.Conn.Exec(ctx, query)
 	if err != nil {
 		log.Printf("Could not insert new record into the database %v", err)
 		return uuid.Nil
@@ -82,7 +95,10 @@ func (db *TaskStore) Update(id, title, desc string) (*task.Task, error) {
 
 	query := fmt.Sprintf(`UPDATE task SET title = '%s', description = '%s' WHERE id = '%s';`, title, desc, id)
 
-	update, err := db.Conn.Exec(context.Background(), query)
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+
+	update, err := db.Conn.Exec(ctx, query)
 	if err != nil {
 		return nil, fmt.Errorf("error updating task with ID %s with error %v", id, err)
 	}
@@ -95,7 +111,10 @@ func (db *TaskStore) Update(id, title, desc string) (*task.Task, error) {
 
 	var updatedTask task.Task
 
-	err = db.Conn.QueryRow(context.Background(), query).Scan(&updatedTask.ID, &updatedTask.Title, &updatedTask.Desc, &updatedTask.AuthorID)
+	ctx, cancel = context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+
+	err = db.Conn.QueryRow(ctx, query).Scan(&updatedTask.ID, &updatedTask.Title, &updatedTask.Desc, &updatedTask.AuthorID)
 	if err != nil {
 		return nil, fmt.Errorf("error querying updated task: %v", err)
 	}
@@ -111,7 +130,10 @@ func (db *TaskStore) Delete(id string) error {
 
 	query := fmt.Sprintf("DELETE FROM task WHERE id = '%s';", id)
 
-	del, err := db.Conn.Exec(context.Background(), query)
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+
+	del, err := db.Conn.Exec(ctx, query)
 	if err != nil {
 		return fmt.Errorf("error deleting task with ID %v with error %v", id, err)
 	}
@@ -128,7 +150,10 @@ func (db *TaskStore) BulkImport(tasks []*task.Task) {
 	for _, t := range tasks {
 		query := fmt.Sprintf("INSERT INTO task (title, description) VALUES ('%s', '%s');", t.Title, t.Desc)
 
-		_, err := db.Conn.Exec(context.Background(), query)
+		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+		defer cancel()
+
+		_, err := db.Conn.Exec(ctx, query)
 		if err != nil {
 			log.Printf("%v", err)
 		}

@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/MrShanks/Taska/utils"
 	"github.com/spf13/cobra"
@@ -23,7 +24,9 @@ var importCmd = &cobra.Command{
 }
 
 func runImportCmd(cmd *cobra.Command, args []string) {
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+
 	apiClient := NewApiClient()
 
 	token := utils.ReadToken()

@@ -30,45 +30,30 @@ func NewServer(cfg *utils.Config, taskStore task.Store, authorStore author.Store
 	}
 }
 
-func ConnectDB(dbURL string) (*pgx.Conn, error) {
+func ConnectDB(ctx context.Context, dbURL string) (*pgx.Conn, error) {
 	password := os.Getenv("POSTGRES_PWD")
 	dburl := fmt.Sprintf(dbURL, password)
 
-	ctxConnection, cancel := context.WithTimeout(context.Background(), 2*time.Second)
-	defer cancel()
-
-	chConn := make(chan *pgx.Conn)
-	chErr := make(chan error)
-	go func() {
-		conn, err := pgx.Connect(ctxConnection, dburl)
-		if err != nil {
-			chErr <- err
-			return
-		}
-		chConn <- conn
-	}()
-
-	select {
-	case conn := <-chConn:
-		fmt.Printf("connection established\n")
-		return conn, nil
-	case err := <-chErr:
-		fmt.Printf("connection failed: ")
+	conn, err := pgx.Connect(ctx, dburl)
+	if err != nil {
 		return nil, err
-	case <-ctxConnection.Done():
-		return nil, fmt.Errorf("timeout reached: %v", ctxConnection.Err())
 	}
+
+	return conn, nil
 }
 
 // Listen initialize the server and waits for requests
 func Listen(cfg *utils.Config) error {
 	var err error
 
-	conn, err := ConnectDB(cfg.Spec.DB_URL)
+	ctxConnection, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+
+	conn, err := ConnectDB(ctxConnection, cfg.Spec.DB_URL)
 	if err != nil {
 		return err
 	}
-	defer conn.Close(context.Background())
+	defer conn.Close(ctxConnection)
 
 	taskStore := storage.TaskStore{Conn: conn}
 	authorStore := storage.AuthorStore{Conn: conn}

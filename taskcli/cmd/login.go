@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"time"
 
 	"github.com/MrShanks/Taska/utils"
 	"github.com/spf13/cobra"
@@ -18,8 +19,10 @@ var loginCmd = &cobra.Command{
 	Long:  "Login with email and password to get a token to auhtenticate future requests",
 
 	Run: func(cmd *cobra.Command, args []string) {
+		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+		defer cancel()
+
 		apiClient := NewApiClient()
-		ctx := context.Background()
 
 		email, err := cmd.Flags().GetString("email")
 		if err != nil {
@@ -58,7 +61,7 @@ func Login(taskcli *Taskcli, ctx context.Context, endpoint, email, password stri
 
 	srvMsg, err := io.ReadAll(response.Body)
 	if err != nil {
-		return fmt.Errorf("Couldn't read response body: %v", err)
+		return fmt.Errorf("couldn't read response body: %v", err)
 	}
 
 	fmt.Printf("%v\n", string(srvMsg))
