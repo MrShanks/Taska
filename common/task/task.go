@@ -11,7 +11,6 @@ type Task struct {
 
 func New(title, desc string) *Task {
 	return &Task{
-		ID:    uuid.New(),
 		Title: title,
 		Desc:  desc,
 	}
