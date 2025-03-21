@@ -16,13 +16,15 @@ import (
 const contentType = "Content-Type"
 const appJson = "application/json"
 
-func GetOneTaskHandler(store task.Store) func(http.ResponseWriter, *http.Request) {
+func GetOneTaskHandler(store task.Store, authorStore author.Store) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Got request on /task endpoint\n")
 
 		taskID := r.PathValue("id")
 
-		selectedTask, err := store.GetOne(taskID)
+		authorID := tokenToAuthor(r, authorStore)
+
+		selectedTask, err := store.GetOne(taskID, authorID)
 		if err != nil {
 			log.Printf("Couldn't retrieve task from store: %v\n", err)
 			w.WriteHeader(http.StatusNotFound)
@@ -45,11 +47,13 @@ func GetOneTaskHandler(store task.Store) func(http.ResponseWriter, *http.Request
 	}
 }
 
-func GetAllTasksHandler(store task.Store) http.HandlerFunc {
+func GetAllTasksHandler(taskStore task.Store, authorStore author.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Got request on /tasks endpoint\n")
 
-		tasks := store.GetTasks()
+		authorID := tokenToAuthor(r, authorStore)
+
+		tasks := taskStore.GetTasks(authorID)
 
 		jsonTasks, err := json.Marshal(tasks)
 		if err != nil {
@@ -105,11 +109,12 @@ func NewTaskHandler(taskStore task.Store, authorStore author.Store) http.Handler
 	}
 }
 
-func UpdateTaskHandler(store task.Store) func(http.ResponseWriter, *http.Request) {
+func UpdateTaskHandler(store task.Store, authorStore author.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Got request on /update endpoint\n")
 
 		taskID := r.PathValue("id")
+		authorID := tokenToAuthor(r, authorStore)
 
 		changes := task.Task{}
 
@@ -126,7 +131,7 @@ func UpdateTaskHandler(store task.Store) func(http.ResponseWriter, *http.Request
 			return
 		}
 
-		updatedTask, err := store.Update(taskID, changes.Title, changes.Desc)
+		updatedTask, err := store.Update(taskID, changes.Title, changes.Desc, authorID)
 		if err != nil {
 			w.WriteHeader(http.StatusNotFound)
 			log.Printf("Error updating task: %v", err)
@@ -148,13 +153,15 @@ func UpdateTaskHandler(store task.Store) func(http.ResponseWriter, *http.Request
 	}
 }
 
-func DeleteTaskHandler(store task.Store) http.HandlerFunc {
+func DeleteTaskHandler(store task.Store, authorStore author.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Got request on /delete endpoint\n")
 
 		taskID := r.PathValue("id")
 
-		err := store.Delete(taskID)
+		authorID := tokenToAuthor(r, authorStore)
+
+		err := store.Delete(taskID, authorID)
 		if err != nil {
 			w.WriteHeader(http.StatusNotFound)
 			log.Printf("Deletion failed: %v", err)
@@ -165,7 +172,7 @@ func DeleteTaskHandler(store task.Store) http.HandlerFunc {
 	}
 }
 
-func ImportTaskHandler(store task.Store) http.HandlerFunc {
+func ImportTaskHandler(store task.Store, authorStore author.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Got request on /import endpoint\n")
 
@@ -195,7 +202,9 @@ func ImportTaskHandler(store task.Store) http.HandlerFunc {
 			}
 		}
 
-		store.BulkImport(tasks)
+		authorID := tokenToAuthor(r, authorStore)
+
+		store.BulkImport(tasks, authorID)
 
 		w.WriteHeader(http.StatusCreated)
 	}
@@ -294,4 +303,15 @@ func faviconHandler(w http.ResponseWriter, r *http.Request) {
 	// This is needed because browser always issue a second
 	// http request to get the favicon for a website
 	w.WriteHeader(http.StatusNoContent)
+}
+
+func tokenToAuthor(r *http.Request, authorStore author.Store) string {
+	token := r.Header.Get("Token")
+
+	authorID, err := authorStore.GetAuthorID(token)
+	if err != nil {
+		log.Printf("Error when fetching the author id: %v", err)
+	}
+
+	return authorID
 }

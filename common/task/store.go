@@ -3,10 +3,10 @@ package task
 import "github.com/google/uuid"
 
 type Store interface {
-	GetTasks() []*Task
-	GetOne(id string) (*Task, error)
-	New(*Task) uuid.UUID
-	Delete(id string) error
-	Update(id, title, desc string) (*Task, error)
-	BulkImport([]*Task)
+	GetTasks(authorID string) []*Task
+	GetOne(id, authorID string) (*Task, error)
+	New(task *Task) uuid.UUID
+	Delete(id, authorID string) error
+	Update(id, title, desc, authorID string) (*Task, error)
+	BulkImport(tasks []*Task, authorID string)
 }

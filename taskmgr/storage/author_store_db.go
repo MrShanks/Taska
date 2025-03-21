@@ -50,7 +50,7 @@ func (db *AuthorStore) SignIn(email, password, token string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 
-	err := db.Conn.QueryRow(ctx, query).Scan(&a.ID, &a.Firstname, &a.Lastname, &a.Email, &a.Password)
+	err := db.Conn.QueryRow(ctx, query).Scan(&a.ID, &a.Firstname, &a.Lastname, &a.Email, &a.Password, &a.Token)
 	if err == pgx.ErrNoRows {
 		return fmt.Errorf("couln't find a email password match")
 	}
