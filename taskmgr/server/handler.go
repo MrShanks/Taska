@@ -94,15 +94,8 @@ func NewTaskHandler(taskStore task.Store, authorStore author.Store) http.Handler
 		newTask.AuthorID = uuid.MustParse(authorID)
 
 		newTaskID := taskStore.New(&newTask)
-		if newTaskID == uuid.Nil {
-			_, err := w.Write([]byte("Couldn't reach the database"))
-			if err != nil {
-				log.Printf("Error: %v", err)
-			}
-			return
-		}
 
-		log.Printf("New task created. ID: %s", newTaskID)
+		log.Printf("New task created with ID: %s", newTaskID)
 
 		w.WriteHeader(http.StatusCreated)
 		_, err = w.Write([]byte(newTaskID.String()))
