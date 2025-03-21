@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"time"
 
 	"github.com/spf13/cobra"
 
@@ -23,7 +24,9 @@ var newCmd = &cobra.Command{
 }
 
 func runNewCmd(cmd *cobra.Command, args []string) {
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
 	apiClient := NewApiClient()
 
 	title, desc, err := getFlags(cmd, 0)

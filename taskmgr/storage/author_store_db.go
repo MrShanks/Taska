@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/MrShanks/Taska/common/author"
 	"github.com/jackc/pgx/v5"
@@ -17,7 +18,10 @@ func (db *AuthorStore) SignUp(newAuthor *author.Author) error {
 		"INSERT INTO author (firstname, lastname, email, password) values ('%s','%s','%s','%s');",
 		newAuthor.Firstname, newAuthor.Lastname, newAuthor.Email, newAuthor.Password)
 
-	_, err := db.Conn.Exec(context.Background(), query)
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+
+	_, err := db.Conn.Exec(ctx, query)
 	if err != nil {
 		return fmt.Errorf("couldn't create author: %v", err)
 	}
@@ -30,7 +34,10 @@ func (db *AuthorStore) SignIn(email, password string) error {
 
 	a := author.Author{}
 
-	err := db.Conn.QueryRow(context.Background(), query).Scan(&a.ID, &a.Firstname, &a.Lastname, &a.Email, &a.Password)
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+
+	err := db.Conn.QueryRow(ctx, query).Scan(&a.ID, &a.Firstname, &a.Lastname, &a.Email, &a.Password)
 	if err == pgx.ErrNoRows {
 		return fmt.Errorf("couln't find a email password match")
 	}

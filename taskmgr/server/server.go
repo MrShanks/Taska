@@ -30,13 +30,11 @@ func NewServer(cfg *utils.Config, taskStore task.Store, authorStore author.Store
 	}
 }
 
-func ConnectDB(dbURL string) (*pgx.Conn, error) {
+func ConnectDB(ctx context.Context, dbURL string) (*pgx.Conn, error) {
 	password := os.Getenv("POSTGRES_PWD")
 	dburl := fmt.Sprintf(dbURL, password)
 
-	var err error
-
-	conn, err := pgx.Connect(context.Background(), dburl)
+	conn, err := pgx.Connect(ctx, dburl)
 	if err != nil {
 		return nil, err
 	}
@@ -48,11 +46,14 @@ func ConnectDB(dbURL string) (*pgx.Conn, error) {
 func Listen(cfg *utils.Config) error {
 	var err error
 
-	conn, err := ConnectDB(cfg.Spec.DB_URL)
+	ctxConnection, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+
+	conn, err := ConnectDB(ctxConnection, cfg.Spec.DB_URL)
 	if err != nil {
 		return err
 	}
-	defer conn.Close(context.Background())
+	defer conn.Close(ctxConnection)
 
 	taskStore := storage.TaskStore{Conn: conn}
 	authorStore := storage.AuthorStore{Conn: conn}

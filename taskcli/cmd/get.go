@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/MrShanks/Taska/common/task"
 	"github.com/MrShanks/Taska/utils"
@@ -18,7 +19,9 @@ var getCmd = &cobra.Command{
 	Long:  "Get or dump on a file all active tasks stored on the server",
 
 	Run: func(cmd *cobra.Command, args []string) {
-		ctx := context.Background()
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
 		apiClient := NewApiClient()
 
 		format, err := cmd.Flags().GetString("export")

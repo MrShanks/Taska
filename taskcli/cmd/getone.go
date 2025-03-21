@@ -4,12 +4,14 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/MrShanks/Taska/common/task"
-	"github.com/MrShanks/Taska/utils"
-	"github.com/spf13/cobra"
 	"io"
 	"log"
 	"net/http"
+	"time"
+
+	"github.com/MrShanks/Taska/common/task"
+	"github.com/MrShanks/Taska/utils"
+	"github.com/spf13/cobra"
 )
 
 var getOneCmd = &cobra.Command{
@@ -20,8 +22,10 @@ var getOneCmd = &cobra.Command{
 
 	ValidArgsFunction: getCompletion,
 	Run: func(cmd *cobra.Command, args []string) {
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
 		apiClient := NewApiClient()
-		ctx := context.Background()
 
 		token := utils.ReadToken()
 
@@ -34,8 +38,10 @@ var getOneCmd = &cobra.Command{
 }
 
 func getCompletion(_ *cobra.Command, _ []string, _ string) ([]string, cobra.ShellCompDirective) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
 	apiClient := NewApiClient()
-	ctx := context.Background()
 
 	token := utils.ReadToken()
 
