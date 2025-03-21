@@ -17,7 +17,7 @@ var signupCmd = &cobra.Command{
 	Long:  "Signup a new auhtor to be able to login",
 
 	Run: func(cmd *cobra.Command, args []string) {
-		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 
 		apiClient := NewApiClient()
