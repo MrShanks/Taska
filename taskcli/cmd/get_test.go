@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/MrShanks/Taska/common/task"
 )
@@ -40,7 +41,10 @@ func TestFetch(t *testing.T) {
 			ServerURL:  *serverURL,
 		}
 
-		got := FetchTasks(mockClient, context.Background(), "/tasks", "token")
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		got := FetchTasks(mockClient, ctx, "/tasks", "token")
 		want := jsonTask
 
 		if reflect.DeepEqual(got, want) {
