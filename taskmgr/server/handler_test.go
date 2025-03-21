@@ -18,11 +18,11 @@ import (
 
 func TestNewTaskHandler(t *testing.T) {
 	// Arrange
-	mockDatabase := storage.InMemoryDatabase{
+	mockTaskStorage := storage.InMemoryDatabase{
 		Tasks: map[uuid.UUID]*task.Task{},
 	}
 
-	var authorStore author.Store
+	mockAuthorStorage := MockAuthorStorage{}
 
 	newDummyTask := task.New("new upcoming task", "title of a new fancy task")
 
@@ -32,7 +32,7 @@ func TestNewTaskHandler(t *testing.T) {
 	}
 
 	// Act
-	handler := NewTaskHandler(&mockDatabase, authorStore)
+	handler := NewTaskHandler(&mockTaskStorage, &mockAuthorStorage)
 
 	request, _ := http.NewRequestWithContext(context.Background(), http.MethodPost, "/new", bytes.NewBuffer(body))
 	response := httptest.NewRecorder()
@@ -40,7 +40,7 @@ func TestNewTaskHandler(t *testing.T) {
 	handler(response, request)
 
 	// "Check if the pushed task has been created": mockDatabase.GetTasks(),
-	got := mockDatabase.GetTasks()
+	got := mockTaskStorage.GetTasks()
 	want := task.New(newDummyTask.Title, newDummyTask.Desc)
 
 	if got[0].Title != want.Title {
@@ -159,4 +159,14 @@ func TestGeneralHandler(t *testing.T) {
 			}
 		})
 	}
+}
+
+type MockAuthorStorage struct{}
+
+func (mas *MockAuthorStorage) SignIn(email, password, token string) error { return nil }
+
+func (mas *MockAuthorStorage) SignUp(newAuthor *author.Author) error { return nil }
+
+func (mas *MockAuthorStorage) GetAuthorID(token string) (string, error) {
+	return uuid.Nil.String(), nil
 }
