@@ -66,7 +66,7 @@ func GetAllTasksHandler(store task.Store) http.HandlerFunc {
 	}
 }
 
-func NewTaskHandler(store task.Store) http.HandlerFunc {
+func NewTaskHandler(store task.Store, astore author.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Got request on /new endpoint\n")
 
@@ -83,6 +83,16 @@ func NewTaskHandler(store task.Store) http.HandlerFunc {
 			http.Error(w, "Invalid JSON format", http.StatusBadRequest)
 			return
 		}
+
+		token := r.Header.Get("Token")
+		log.Println(token)
+
+		authorID, err := astore.GetAuthorID(token)
+		if err != nil {
+			log.Printf("error fetching author id: %v", err)
+		}
+
+		newTask.AuthorID = uuid.MustParse(authorID)
 
 		newTaskID := store.New(&newTask)
 		if newTaskID == uuid.Nil {
@@ -254,13 +264,13 @@ func Signin(store author.Store) http.HandlerFunc {
 			return
 		}
 
-		if err = store.SignIn(signInAuthor.Email, signInAuthor.Password); err != nil {
+		token := uuid.New().String()
+		if err = store.SignIn(signInAuthor.Email, signInAuthor.Password, token); err != nil {
 			w.WriteHeader(http.StatusUnauthorized)
 			log.Printf("Error during authentication: %v", err)
 			return
 		}
 
-		token := uuid.New().String()
 		loggedAuthors[token] = signInAuthor.Email
 
 		w.Header().Set("token", token)

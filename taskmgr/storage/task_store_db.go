@@ -62,23 +62,12 @@ func (db *TaskStore) GetTasks() []*task.Task {
 }
 
 func (db *TaskStore) New(task *task.Task) uuid.UUID {
-	// To be removed when proper user logic is implemented
-	query := "SELECT id FROM author WHERE email = 'marco@rossi.com';"
-	var authorID string
+	query := fmt.Sprintf("INSERT INTO task (author_id, title, description) VALUES ('%s', '%s', '%s');", task.AuthorID, task.Title, task.Desc)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 
-	err := db.Conn.QueryRow(ctx, query).Scan(&authorID)
-	if err == pgx.ErrNoRows {
-		log.Printf("Couldn't find a match: %v", err)
-	}
-
-	ctx, cancel = context.WithTimeout(context.Background(), 2*time.Second)
-	defer cancel()
-
-	query = fmt.Sprintf("INSERT INTO task (title, description, author_id) VALUES ('%s', '%s', '%s');", task.Title, task.Desc, authorID)
-	_, err = db.Conn.Exec(ctx, query)
+	_, err := db.Conn.Exec(ctx, query)
 	if err != nil {
 		log.Printf("Could not insert new record into the database %v", err)
 		return uuid.Nil
@@ -88,7 +77,7 @@ func (db *TaskStore) New(task *task.Task) uuid.UUID {
 	defer cancel()
 
 	query = fmt.Sprintf("SELECT id FROM task WHERE title = '%s'", task.Title)
-  
+
 	err = db.Conn.QueryRow(ctx, query).Scan(&task.ID)
 	if err == pgx.ErrNoRows {
 		log.Printf("Couldn't find a match: %v", err)
