@@ -13,6 +13,19 @@ type AuthorStore struct {
 	Conn *pgx.Conn
 }
 
+func (db *AuthorStore) GetAuthorID(token string) (string, error) {
+	query := fmt.Sprintf("SELECT id FROM author WHERE token = '%s';", token)
+
+	var authorID string
+
+	err := db.Conn.QueryRow(context.Background(), query).Scan(&authorID)
+	if err == pgx.ErrNoRows {
+		return "", fmt.Errorf("no author found with token: %s. Error: %v", token, err)
+	}
+
+	return authorID, nil
+}
+
 func (db *AuthorStore) SignUp(newAuthor *author.Author) error {
 	query := fmt.Sprintf(
 		"INSERT INTO author (firstname, lastname, email, password) values ('%s','%s','%s','%s');",
@@ -29,7 +42,7 @@ func (db *AuthorStore) SignUp(newAuthor *author.Author) error {
 	return nil
 }
 
-func (db *AuthorStore) SignIn(email, password string) error {
+func (db *AuthorStore) SignIn(email, password, token string) error {
 	query := fmt.Sprintf("SELECT * FROM author WHERE email = '%s' and password = '%s';", email, password)
 
 	a := author.Author{}
@@ -44,6 +57,13 @@ func (db *AuthorStore) SignIn(email, password string) error {
 
 	if err != nil {
 		return fmt.Errorf("error signing in the user: %v", err)
+	}
+
+	query = fmt.Sprintf("UPDATE author SET token = '%v' WHERE email = '%s'", token, email)
+
+	_, err = db.Conn.Exec(context.Background(), query)
+	if err != nil {
+		return fmt.Errorf("couldn't save author token: %v", err)
 	}
 
 	return nil

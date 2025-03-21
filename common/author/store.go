@@ -2,5 +2,6 @@ package author
 
 type Store interface {
 	SignUp(*Author) error
-	SignIn(email, password string) error
+	SignIn(email, password, token string) error
+	GetAuthorID(token string) (string, error)
 }

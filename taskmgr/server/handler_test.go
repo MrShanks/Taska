@@ -11,6 +11,7 @@ import (
 
 	"github.com/google/uuid"
 
+	"github.com/MrShanks/Taska/common/author"
 	"github.com/MrShanks/Taska/common/task"
 	"github.com/MrShanks/Taska/taskmgr/storage"
 )
@@ -21,6 +22,8 @@ func TestNewTaskHandler(t *testing.T) {
 		Tasks: map[uuid.UUID]*task.Task{},
 	}
 
+	var authorStore author.Store
+
 	newDummyTask := task.New("new upcoming task", "title of a new fancy task")
 
 	body, err := json.Marshal(newDummyTask)
@@ -29,7 +32,7 @@ func TestNewTaskHandler(t *testing.T) {
 	}
 
 	// Act
-	handler := NewTaskHandler(&mockDatabase)
+	handler := NewTaskHandler(&mockDatabase, authorStore)
 
 	request, _ := http.NewRequestWithContext(context.Background(), http.MethodPost, "/new", bytes.NewBuffer(body))
 	response := httptest.NewRecorder()
