@@ -16,7 +16,7 @@ import (
 const contentType = "Content-Type"
 const appJson = "application/json"
 
-func GetOneTaskHandler(store task.Store, authorStore author.Store) func(http.ResponseWriter, *http.Request) {
+func GetOneTaskHandler(store task.Store, authorStore author.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Got request on /task endpoint\n")
 
