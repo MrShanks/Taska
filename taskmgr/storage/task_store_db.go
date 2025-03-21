@@ -84,6 +84,15 @@ func (db *TaskStore) New(task *task.Task) uuid.UUID {
 		return uuid.Nil
 	}
 
+	ctx, cancel = context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+
+	queryTaskID := fmt.Sprintf("SELECT id FROM task WHERE title = '%v'", task.Title)
+	err = db.Conn.QueryRow(ctx, queryTaskID).Scan(&task.ID)
+	if err == pgx.ErrNoRows {
+		log.Printf("Couldn't find a match: %v", err)
+	}
+
 	return task.ID
 }
 
