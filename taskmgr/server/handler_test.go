@@ -40,7 +40,7 @@ func TestNewTaskHandler(t *testing.T) {
 	handler(response, request)
 
 	// "Check if the pushed task has been created": mockDatabase.GetTasks(),
-	got := mockTaskStorage.GetTasks()
+	got := mockTaskStorage.GetTasks(uuid.Nil.String())
 	want := task.New(newDummyTask.Title, newDummyTask.Desc)
 
 	if got[0].Title != want.Title {
@@ -63,8 +63,10 @@ func TestGetTasksHandler(t *testing.T) {
 			Tasks: tasks,
 		}
 
+		MAS := MockAuthorStorage{}
+
 		// Act
-		handler := GetAllTasksHandler(&IMD)
+		handler := GetAllTasksHandler(&IMD, &MAS)
 
 		request, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "/tasks", nil)
 		if err != nil {
@@ -76,7 +78,7 @@ func TestGetTasksHandler(t *testing.T) {
 
 		// Assert
 		got := response.Body.String()
-		wantBytes, _ := json.Marshal(IMD.GetTasks())
+		wantBytes, _ := json.Marshal(IMD.GetTasks(uuid.Nil.String()))
 		want := string(wantBytes)
 
 		if got != want {
@@ -102,8 +104,10 @@ func TestUpdateTaskHandler(t *testing.T) {
 			Tasks: tasks,
 		}
 
+		MAS := MockAuthorStorage{}
+
 		// Act
-		handler := UpdateTaskHandler(&IMD)
+		handler := UpdateTaskHandler(&IMD, &MAS)
 
 		body := &bytes.Buffer{}
 		body.Write([]byte(`{"title":"new title","desc":"new description"}`))

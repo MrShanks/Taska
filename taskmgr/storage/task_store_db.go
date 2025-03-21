@@ -16,7 +16,7 @@ type TaskStore struct {
 	Conn *pgx.Conn
 }
 
-func (db *TaskStore) GetOne(id string) (*task.Task, error) {
+func (db *TaskStore) GetOne(id, authorID string) (*task.Task, error) {
 	query := fmt.Sprintf("SELECT * FROM task WHERE id = '%s';", id)
 
 	t := task.Task{}
@@ -32,9 +32,9 @@ func (db *TaskStore) GetOne(id string) (*task.Task, error) {
 	return &t, nil
 }
 
-func (db *TaskStore) GetTasks() []*task.Task {
+func (db *TaskStore) GetTasks(authorID string) []*task.Task {
 	var fetchedTasks []*task.Task
-	query := "SELECT * FROM task"
+	query := fmt.Sprintf("SELECT * FROM task WHERE author_id = '%s'", authorID)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
@@ -81,13 +81,13 @@ func (db *TaskStore) New(task *task.Task) uuid.UUID {
 	return task.ID
 }
 
-func (db *TaskStore) Update(id, title, desc string) (*task.Task, error) {
+func (db *TaskStore) Update(id, title, desc, authorID string) (*task.Task, error) {
 	UUID, err := uuid.Parse(id)
 	if err != nil {
 		return nil, fmt.Errorf("invalid uuid: %s", id)
 	}
 
-	query := fmt.Sprintf(`UPDATE task SET title = '%s', description = '%s' WHERE id = '%s';`, title, desc, id)
+	query := fmt.Sprintf(`UPDATE task SET title = '%s', description = '%s' WHERE id = '%s' and author_id = '%s';`, title, desc, id, authorID)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
@@ -116,13 +116,13 @@ func (db *TaskStore) Update(id, title, desc string) (*task.Task, error) {
 	return &updatedTask, nil
 }
 
-func (db *TaskStore) Delete(id string) error {
+func (db *TaskStore) Delete(id, authorID string) error {
 	UUID, err := uuid.Parse(id)
 	if err != nil {
 		return fmt.Errorf("invalid uuid: %s", id)
 	}
 
-	query := fmt.Sprintf("DELETE FROM task WHERE id = '%s';", id)
+	query := fmt.Sprintf("DELETE FROM task WHERE id = '%s' and author_id = '%s';", id, authorID)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
@@ -140,9 +140,9 @@ func (db *TaskStore) Delete(id string) error {
 	return nil
 }
 
-func (db *TaskStore) BulkImport(tasks []*task.Task) {
+func (db *TaskStore) BulkImport(tasks []*task.Task, authorID string) {
 	for _, t := range tasks {
-		query := fmt.Sprintf("INSERT INTO task (title, description) VALUES ('%s', '%s');", t.Title, t.Desc)
+		query := fmt.Sprintf("INSERT INTO task (title, description, author_id) VALUES ('%s', '%s', '%s');", t.Title, t.Desc, authorID)
 
 		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 		defer cancel()
