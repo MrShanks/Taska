@@ -1,6 +1,6 @@
 name: E2E Tests
 
-on: [push, pull_request]
+on: [push]
 
 jobs:
   e2e-tests:
@@ -14,6 +14,12 @@ jobs:
           POSTGRES_DB: testdb
         ports:
           - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - uses: actions/checkout@v4
 
@@ -33,12 +39,22 @@ jobs:
             sleep 1
           done
           echo "PostgreSQL did not start in time" && exit 1
+      
+      - name: Install Goose CLI
+        run: |
+          curl -s https://raw.githubusercontent.com/pressly/goose/master/install.sh | bash
+
+      - name: Run Goose Migrations
+        run: |
+          goose -dir ./taskmgr/goose postgres "user=$POSTGRES_USER password=$POSTGRES_PASSWORD dbname=$POSTGRES_DB host=postgres:5432 sslmode=disable" up
 
       - name: Load test data into PostgreSQL
-        run: psql -h localhost -U test -d testdb -f e2e/setup.sql
+        run: |
+          export PGPASSWORD=$POSTGRES_PASSWORD
+          psql -h localhost -U $POSTGRES_USER -d $POSTGRES_DB -f e2e/setup.sql
 
       - name:
         run: |
-          psql -h localhost -U test -d testdb -c "SELECT * FROM task;"
-          psql -h localhost -U test -d testdb -c "SELECT * FROM author;"
+          psql -h localhost -U $POSTGRES_USER -d $POSTGRES_DB -c "SELECT * FROM task;"
+          psql -h localhost -U $POSTGRES_USER -d $POSTGRES_DB -c "SELECT * FROM author;"
 
