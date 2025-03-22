@@ -16,7 +16,7 @@ import (
 const contentType = "Content-Type"
 const appJson = "application/json"
 
-func GetOneTaskHandler(store task.Store, authorStore author.Store) http.HandlerFunc {
+func GetOneTaskHandler(taskStore task.Store, authorStore author.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Got request on /task endpoint\n")
 
@@ -24,7 +24,7 @@ func GetOneTaskHandler(store task.Store, authorStore author.Store) http.HandlerF
 
 		authorID := tokenToAuthor(r, authorStore)
 
-		selectedTask, err := store.GetOne(taskID, authorID)
+		selectedTask, err := taskStore.GetOne(taskID, authorID)
 		if err != nil {
 			log.Printf("Couldn't retrieve task from store: %v\n", err)
 			w.WriteHeader(http.StatusNotFound)
@@ -109,7 +109,7 @@ func NewTaskHandler(taskStore task.Store, authorStore author.Store) http.Handler
 	}
 }
 
-func UpdateTaskHandler(store task.Store, authorStore author.Store) http.HandlerFunc {
+func UpdateTaskHandler(taskStore task.Store, authorStore author.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Got request on /update endpoint\n")
 
@@ -131,7 +131,7 @@ func UpdateTaskHandler(store task.Store, authorStore author.Store) http.HandlerF
 			return
 		}
 
-		updatedTask, err := store.Update(taskID, changes.Title, changes.Desc, authorID)
+		updatedTask, err := taskStore.Update(taskID, changes.Title, changes.Desc, authorID)
 		if err != nil {
 			w.WriteHeader(http.StatusNotFound)
 			log.Printf("Error updating task: %v", err)
@@ -153,7 +153,7 @@ func UpdateTaskHandler(store task.Store, authorStore author.Store) http.HandlerF
 	}
 }
 
-func DeleteTaskHandler(store task.Store, authorStore author.Store) http.HandlerFunc {
+func DeleteTaskHandler(taskStore task.Store, authorStore author.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Got request on /delete endpoint\n")
 
@@ -161,7 +161,7 @@ func DeleteTaskHandler(store task.Store, authorStore author.Store) http.HandlerF
 
 		authorID := tokenToAuthor(r, authorStore)
 
-		err := store.Delete(taskID, authorID)
+		err := taskStore.Delete(taskID, authorID)
 		if err != nil {
 			w.WriteHeader(http.StatusNotFound)
 			log.Printf("Deletion failed: %v", err)
@@ -172,7 +172,7 @@ func DeleteTaskHandler(store task.Store, authorStore author.Store) http.HandlerF
 	}
 }
 
-func ImportTaskHandler(store task.Store, authorStore author.Store) http.HandlerFunc {
+func ImportTaskHandler(taskStore task.Store, authorStore author.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Got request on /import endpoint\n")
 
@@ -204,13 +204,13 @@ func ImportTaskHandler(store task.Store, authorStore author.Store) http.HandlerF
 
 		authorID := tokenToAuthor(r, authorStore)
 
-		store.BulkImport(tasks, authorID)
+		taskStore.BulkImport(tasks, authorID)
 
 		w.WriteHeader(http.StatusCreated)
 	}
 }
 
-func Signup(store author.Store) http.HandlerFunc {
+func Signup(authorStore author.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Got request on /signup endpoint\n")
 
@@ -231,7 +231,7 @@ func Signup(store author.Store) http.HandlerFunc {
 			return
 		}
 
-		if err = store.SignUp(&newAuthor); err != nil {
+		if err = authorStore.SignUp(&newAuthor); err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			log.Printf("Couldn't sign you up: %v", err)
 			return
@@ -244,7 +244,7 @@ func Signup(store author.Store) http.HandlerFunc {
 	}
 }
 
-func Signin(store author.Store) http.HandlerFunc {
+func Signin(authorStore author.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Got request on /signin endpoint")
 
@@ -266,7 +266,7 @@ func Signin(store author.Store) http.HandlerFunc {
 		}
 
 		token := uuid.New().String()
-		if err = store.SignIn(signInAuthor.Email, signInAuthor.Password, token); err != nil {
+		if err = authorStore.SignIn(signInAuthor.Email, signInAuthor.Password, token); err != nil {
 			w.WriteHeader(http.StatusUnauthorized)
 			log.Printf("Error during authentication: %v", err)
 			return
