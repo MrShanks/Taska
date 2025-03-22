@@ -1,0 +1,60 @@
+name: E2E Tests
+
+on: [push]
+
+jobs:
+  e2e-tests:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: testdb
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+
+      - name: Install PostgreSQL client
+        run: sudo apt-get install -y postgresql-client
+
+      - name: Wait for PostgreSQL to be ready
+        run: |
+          for i in {1..10}; do
+            pg_isready -h localhost -p 5432 -U test && exit 0
+            echo "Waiting for PostgreSQL..."
+            sleep 1
+          done
+          echo "PostgreSQL did not start in time" && exit 1
+      
+      - name: Install Goose CLI
+        run: |
+          curl -s https://raw.githubusercontent.com/pressly/goose/master/install.sh | bash
+
+      - name: Run Goose Migrations
+        run: |
+          goose -dir ./taskmgr/goose postgres "user=$POSTGRES_USER password=$POSTGRES_PASSWORD dbname=$POSTGRES_DB host=postgres:5432 sslmode=disable" up
+
+      - name: Load test data into PostgreSQL
+        run: |
+          export PGPASSWORD=$POSTGRES_PASSWORD
+          psql -h localhost -U $POSTGRES_USER -d $POSTGRES_DB -f e2e/setup.sql
+
+      - name:
+        run: |
+          psql -h localhost -U $POSTGRES_USER -d $POSTGRES_DB -c "SELECT * FROM task;"
+          psql -h localhost -U $POSTGRES_USER -d $POSTGRES_DB -c "SELECT * FROM author;"
+
