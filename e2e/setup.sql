@@ -1,7 +1,7 @@
 -- Insert authors
 INSERT INTO author (id, firstname, lastname, email, password) VALUES
-    ('11111111-1111-1111-1111-111111111111', 'Marco', 'Rossi', 'marco@rossi.com', 'password'),
-    ('22222222-2222-2222-2222-222222222222', 'Luca', 'Bianchi', 'luca@bianchi.com', 'password');
+    ('11111111-1111-1111-1111-111111111111', 'Simone', 'Staffoli', 'simone@staffoli.com', 'Mastro'),
+    ('22222222-2222-2222-2222-222222222222', 'Andrea', 'Pinchera', 'andrea@pinchera.com', 'Mastro');
 
 -- Insert tasks
 INSERT INTO task (id, title, description, author_id) VALUES

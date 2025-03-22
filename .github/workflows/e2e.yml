@@ -1,0 +1,44 @@
+name: E2E Tests
+
+on: [push, pull_request]
+
+jobs:
+  e2e-tests:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: testdb
+        ports:
+          - 5432:5432
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+
+      - name: Install PostgreSQL client
+        run: sudo apt-get install -y postgresql-client
+
+      - name: Wait for PostgreSQL to be ready
+        run: |
+          for i in {1..10}; do
+            pg_isready -h localhost -p 5432 -U test && exit 0
+            echo "Waiting for PostgreSQL..."
+            sleep 1
+          done
+          echo "PostgreSQL did not start in time" && exit 1
+
+      - name: Load test data into PostgreSQL
+        run: psql -h localhost -U test -d testdb -f e2e/setup.sql
+
+      - name:
+        run: |
+          psql -h localhost -U test -d testdb -c "SELECT * FROM task;"
+          psql -h localhost -U test -d testdb -c "SELECT * FROM author;"
+
