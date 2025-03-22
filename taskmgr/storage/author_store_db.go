@@ -17,7 +17,7 @@ type AuthorStore struct {
 func (db *AuthorStore) SignUp(newAuthor *author.Author) error {
 	var err error
 
-	newAuthor.Password, err = db.Crypt(&newAuthor.Password)
+	newAuthor.Password, err = crypt(&newAuthor.Password)
 	if err != nil {
 		return fmt.Errorf("error hashing password: %v", err)
 	}
@@ -50,7 +50,7 @@ func (db *AuthorStore) SignIn(email, password string) error {
 		return fmt.Errorf("couln't find an email match")
 	}
 
-	if db.Compare(&a.Password, &password) != nil {
+	if compare(&a.Password, &password) != nil {
 		return fmt.Errorf("incorrect password: %v", err)
 	}
 
@@ -60,12 +60,12 @@ func (db *AuthorStore) SignIn(email, password string) error {
 	return nil
 }
 
-func (db *AuthorStore) Crypt(text *string) (string, error) {
+func crypt(text *string) (string, error) {
 	hash, err := bcrypt.GenerateFromPassword([]byte(*text), 10)
 	return string(hash), err
 }
 
-func (db *AuthorStore) Compare(hashedText, clearText *string) error {
+func compare(hashedText, clearText *string) error {
 	err := bcrypt.CompareHashAndPassword([]byte(*hashedText), []byte(*clearText))
 	if err != nil {
 		return err
