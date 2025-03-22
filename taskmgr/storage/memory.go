@@ -15,7 +15,7 @@ type InMemoryDatabase struct {
 	Tasks map[uuid.UUID]*task.Task
 }
 
-func (imd *InMemoryDatabase) GetOne(id string) (*task.Task, error) {
+func (imd *InMemoryDatabase) GetOne(id, authorID string) (*task.Task, error) {
 	UUID, err := uuid.Parse(id)
 	if err != nil {
 		return nil, fmt.Errorf("invalid uuid: %s", id)
@@ -29,7 +29,7 @@ func (imd *InMemoryDatabase) GetOne(id string) (*task.Task, error) {
 	return t, nil
 }
 
-func (imd *InMemoryDatabase) GetTasks() []*task.Task {
+func (imd *InMemoryDatabase) GetTasks(authorID string) []*task.Task {
 	tasks := []*task.Task{}
 
 	for _, val := range imd.Tasks {
@@ -49,7 +49,7 @@ func (imd *InMemoryDatabase) New(task *task.Task) uuid.UUID {
 	return task.ID
 }
 
-func (imd *InMemoryDatabase) Update(id, title, desc string) (*task.Task, error) {
+func (imd *InMemoryDatabase) Update(id, title, desc, author string) (*task.Task, error) {
 	taskID, err := uuid.Parse(id)
 	if err != nil {
 		return nil, fmt.Errorf("invalid uuid")
@@ -72,7 +72,7 @@ func (imd *InMemoryDatabase) Update(id, title, desc string) (*task.Task, error) 
 	return updateTask, nil
 }
 
-func (imd *InMemoryDatabase) Delete(id string) error {
+func (imd *InMemoryDatabase) Delete(id, author string) error {
 	UUID, err := uuid.Parse(id)
 	if err != nil {
 		return fmt.Errorf("invalid uuid: %s", id)
@@ -87,7 +87,7 @@ func (imd *InMemoryDatabase) Delete(id string) error {
 	return nil
 }
 
-func (imd *InMemoryDatabase) BulkImport(tasks []*task.Task) {
+func (imd *InMemoryDatabase) BulkImport(tasks []*task.Task, author string) {
 	for _, task := range tasks {
 		imd.Tasks[task.ID] = task
 	}
