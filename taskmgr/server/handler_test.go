@@ -11,15 +11,18 @@ import (
 
 	"github.com/google/uuid"
 
+	"github.com/MrShanks/Taska/common/author"
 	"github.com/MrShanks/Taska/common/task"
 	"github.com/MrShanks/Taska/taskmgr/storage"
 )
 
 func TestNewTaskHandler(t *testing.T) {
 	// Arrange
-	mockDatabase := storage.InMemoryDatabase{
+	mockTaskStorage := storage.InMemoryDatabase{
 		Tasks: map[uuid.UUID]*task.Task{},
 	}
+
+	mockAuthorStorage := MockAuthorStorage{}
 
 	newDummyTask := task.New("new upcoming task", "title of a new fancy task")
 
@@ -29,7 +32,7 @@ func TestNewTaskHandler(t *testing.T) {
 	}
 
 	// Act
-	handler := NewTaskHandler(&mockDatabase)
+	handler := NewTaskHandler(&mockTaskStorage, &mockAuthorStorage)
 
 	request, _ := http.NewRequestWithContext(context.Background(), http.MethodPost, "/new", bytes.NewBuffer(body))
 	response := httptest.NewRecorder()
@@ -37,7 +40,7 @@ func TestNewTaskHandler(t *testing.T) {
 	handler(response, request)
 
 	// "Check if the pushed task has been created": mockDatabase.GetTasks(),
-	got := mockDatabase.GetTasks()
+	got := mockTaskStorage.GetTasks(uuid.Nil.String())
 	want := task.New(newDummyTask.Title, newDummyTask.Desc)
 
 	if got[0].Title != want.Title {
@@ -60,8 +63,10 @@ func TestGetTasksHandler(t *testing.T) {
 			Tasks: tasks,
 		}
 
+		MAS := MockAuthorStorage{}
+
 		// Act
-		handler := GetAllTasksHandler(&IMD)
+		handler := GetAllTasksHandler(&IMD, &MAS)
 
 		request, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "/tasks", nil)
 		if err != nil {
@@ -73,7 +78,7 @@ func TestGetTasksHandler(t *testing.T) {
 
 		// Assert
 		got := response.Body.String()
-		wantBytes, _ := json.Marshal(IMD.GetTasks())
+		wantBytes, _ := json.Marshal(IMD.GetTasks(uuid.Nil.String()))
 		want := string(wantBytes)
 
 		if got != want {
@@ -99,8 +104,10 @@ func TestUpdateTaskHandler(t *testing.T) {
 			Tasks: tasks,
 		}
 
+		MAS := MockAuthorStorage{}
+
 		// Act
-		handler := UpdateTaskHandler(&IMD)
+		handler := UpdateTaskHandler(&IMD, &MAS)
 
 		body := &bytes.Buffer{}
 		body.Write([]byte(`{"title":"new title","desc":"new description"}`))
@@ -156,4 +163,14 @@ func TestGeneralHandler(t *testing.T) {
 			}
 		})
 	}
+}
+
+type MockAuthorStorage struct{}
+
+func (mas *MockAuthorStorage) SignIn(email, password, token string) error { return nil }
+
+func (mas *MockAuthorStorage) SignUp(newAuthor *author.Author) error { return nil }
+
+func (mas *MockAuthorStorage) GetAuthorID(token string) (string, error) {
+	return uuid.Nil.String(), nil
 }

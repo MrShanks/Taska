@@ -13,12 +13,12 @@ func InitMuxWithRoutes(taskStore task.Store, authorStore author.Store) *http.Ser
 	webMux.HandleFunc("GET /favicon.ico", faviconHandler)
 
 	// Tasks related Routes
-	webMux.HandleFunc("GET /tasks", LoggedInOnly(GetAllTasksHandler(taskStore)))
-	webMux.HandleFunc("GET /task/{id}", LoggedInOnly(GetOneTaskHandler(taskStore)))
-	webMux.HandleFunc("POST /new", LoggedInOnly(NewTaskHandler(taskStore)))
-	webMux.HandleFunc("POST /import", LoggedInOnly(ImportTaskHandler(taskStore)))
-	webMux.HandleFunc("DELETE /delete/{id}", LoggedInOnly(DeleteTaskHandler(taskStore)))
-	webMux.HandleFunc("PUT /update/{id}", LoggedInOnly(UpdateTaskHandler(taskStore)))
+	webMux.HandleFunc("GET /tasks", LoggedInOnly(GetAllTasksHandler(taskStore, authorStore)))
+	webMux.HandleFunc("GET /task/{id}", LoggedInOnly(GetOneTaskHandler(taskStore, authorStore)))
+	webMux.HandleFunc("POST /new", LoggedInOnly(NewTaskHandler(taskStore, authorStore)))
+	webMux.HandleFunc("POST /import", LoggedInOnly(ImportTaskHandler(taskStore, authorStore)))
+	webMux.HandleFunc("DELETE /delete/{id}", LoggedInOnly(DeleteTaskHandler(taskStore, authorStore)))
+	webMux.HandleFunc("PUT /update/{id}", LoggedInOnly(UpdateTaskHandler(taskStore, authorStore)))
 
 	// Users related Routes
 	webMux.HandleFunc("POST /signup", Signup(authorStore))

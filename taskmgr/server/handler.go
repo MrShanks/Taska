@@ -16,13 +16,15 @@ import (
 const contentType = "Content-Type"
 const appJson = "application/json"
 
-func GetOneTaskHandler(store task.Store) func(http.ResponseWriter, *http.Request) {
+func GetOneTaskHandler(taskStore task.Store, authorStore author.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Got request on /task endpoint\n")
 
 		taskID := r.PathValue("id")
 
-		selectedTask, err := store.GetOne(taskID)
+		authorID := tokenToAuthor(r, authorStore)
+
+		selectedTask, err := taskStore.GetOne(taskID, authorID)
 		if err != nil {
 			log.Printf("Couldn't retrieve task from store: %v\n", err)
 			w.WriteHeader(http.StatusNotFound)
@@ -45,11 +47,13 @@ func GetOneTaskHandler(store task.Store) func(http.ResponseWriter, *http.Request
 	}
 }
 
-func GetAllTasksHandler(store task.Store) http.HandlerFunc {
+func GetAllTasksHandler(taskStore task.Store, authorStore author.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Got request on /tasks endpoint\n")
 
-		tasks := store.GetTasks()
+		authorID := tokenToAuthor(r, authorStore)
+
+		tasks := taskStore.GetTasks(authorID)
 
 		jsonTasks, err := json.Marshal(tasks)
 		if err != nil {
@@ -66,7 +70,7 @@ func GetAllTasksHandler(store task.Store) http.HandlerFunc {
 	}
 }
 
-func NewTaskHandler(store task.Store) http.HandlerFunc {
+func NewTaskHandler(taskStore task.Store, authorStore author.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Got request on /new endpoint\n")
 
@@ -84,16 +88,18 @@ func NewTaskHandler(store task.Store) http.HandlerFunc {
 			return
 		}
 
-		newTaskID := store.New(&newTask)
-		if newTaskID == uuid.Nil {
-			_, err := w.Write([]byte("Couldn't reach the database"))
-			if err != nil {
-				log.Printf("Error: %v", err)
-			}
-			return
+		token := r.Header.Get("Token")
+
+		authorID, err := authorStore.GetAuthorID(token)
+		if err != nil {
+			log.Printf("error fetching author id: %v", err)
 		}
 
-		log.Printf("New task created. ID: %s", newTaskID)
+		newTask.AuthorID = uuid.MustParse(authorID)
+
+		newTaskID := taskStore.New(&newTask)
+
+		log.Printf("New task created with ID: %s", newTaskID)
 
 		w.WriteHeader(http.StatusCreated)
 		_, err = w.Write([]byte(newTaskID.String()))
@@ -103,11 +109,12 @@ func NewTaskHandler(store task.Store) http.HandlerFunc {
 	}
 }
 
-func UpdateTaskHandler(store task.Store) func(http.ResponseWriter, *http.Request) {
+func UpdateTaskHandler(taskStore task.Store, authorStore author.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Got request on /update endpoint\n")
 
 		taskID := r.PathValue("id")
+		authorID := tokenToAuthor(r, authorStore)
 
 		changes := task.Task{}
 
@@ -124,7 +131,7 @@ func UpdateTaskHandler(store task.Store) func(http.ResponseWriter, *http.Request
 			return
 		}
 
-		updatedTask, err := store.Update(taskID, changes.Title, changes.Desc)
+		updatedTask, err := taskStore.Update(taskID, changes.Title, changes.Desc, authorID)
 		if err != nil {
 			w.WriteHeader(http.StatusNotFound)
 			log.Printf("Error updating task: %v", err)
@@ -146,13 +153,15 @@ func UpdateTaskHandler(store task.Store) func(http.ResponseWriter, *http.Request
 	}
 }
 
-func DeleteTaskHandler(store task.Store) http.HandlerFunc {
+func DeleteTaskHandler(taskStore task.Store, authorStore author.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Got request on /delete endpoint\n")
 
 		taskID := r.PathValue("id")
 
-		err := store.Delete(taskID)
+		authorID := tokenToAuthor(r, authorStore)
+
+		err := taskStore.Delete(taskID, authorID)
 		if err != nil {
 			w.WriteHeader(http.StatusNotFound)
 			log.Printf("Deletion failed: %v", err)
@@ -163,7 +172,7 @@ func DeleteTaskHandler(store task.Store) http.HandlerFunc {
 	}
 }
 
-func ImportTaskHandler(store task.Store) http.HandlerFunc {
+func ImportTaskHandler(taskStore task.Store, authorStore author.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Got request on /import endpoint\n")
 
@@ -193,13 +202,15 @@ func ImportTaskHandler(store task.Store) http.HandlerFunc {
 			}
 		}
 
-		store.BulkImport(tasks)
+		authorID := tokenToAuthor(r, authorStore)
+
+		taskStore.BulkImport(tasks, authorID)
 
 		w.WriteHeader(http.StatusCreated)
 	}
 }
 
-func Signup(store author.Store) http.HandlerFunc {
+func Signup(authorStore author.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Got request on /signup endpoint\n")
 
@@ -220,7 +231,7 @@ func Signup(store author.Store) http.HandlerFunc {
 			return
 		}
 
-		if err = store.SignUp(&newAuthor); err != nil {
+		if err = authorStore.SignUp(&newAuthor); err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			log.Printf("Couldn't sign you up: %v", err)
 			return
@@ -233,7 +244,7 @@ func Signup(store author.Store) http.HandlerFunc {
 	}
 }
 
-func Signin(store author.Store) http.HandlerFunc {
+func Signin(authorStore author.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Got request on /signin endpoint")
 
@@ -254,13 +265,13 @@ func Signin(store author.Store) http.HandlerFunc {
 			return
 		}
 
-		if err = store.SignIn(signInAuthor.Email, signInAuthor.Password); err != nil {
+		token := uuid.New().String()
+		if err = authorStore.SignIn(signInAuthor.Email, signInAuthor.Password, token); err != nil {
 			w.WriteHeader(http.StatusUnauthorized)
 			log.Printf("Error during authentication: %v", err)
 			return
 		}
 
-		token := uuid.New().String()
 		loggedAuthors[token] = signInAuthor.Email
 
 		w.Header().Set("token", token)
@@ -292,4 +303,15 @@ func faviconHandler(w http.ResponseWriter, r *http.Request) {
 	// This is needed because browser always issue a second
 	// http request to get the favicon for a website
 	w.WriteHeader(http.StatusNoContent)
+}
+
+func tokenToAuthor(r *http.Request, authorStore author.Store) string {
+	token := r.Header.Get("Token")
+
+	authorID, err := authorStore.GetAuthorID(token)
+	if err != nil {
+		log.Printf("Error when fetching the author id: %v", err)
+	}
+
+	return authorID
 }
