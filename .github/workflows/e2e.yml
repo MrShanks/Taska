@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     services:
       postgres:
-        image: postgres
+        image: postgres:15
         env:
           POSTGRES_USER: test
           POSTGRES_PASSWORD: test
@@ -31,23 +31,56 @@ jobs:
       - name: Install PostgreSQL client
         run: sudo apt-get install -y postgresql-client
 
+      - name: Verify database connection
+        run: |
+          psql -h 127.0.0.1 -U test -d testdb -c "SELECT 'Database is ready!'"
+        env:
+          PGPASSWORD: test
+
       - name: Install goose
         run: go install github.com/pressly/goose/v3/cmd/goose@latest
 
       - name: Run migrations
-        env:
-          GOOSE_DRIVER=postgres
-          GOOSE_DBSTRING=postgres://test:test@postgres:5432/testdb
-          GOOSE_MIGRATION_DIR=./taskmgr/goose
-        run: goose up
+        run: |
+          export GOOSE_DRIVER=postgres
+          export GOOSE_DBSTRING=postgres://test:test@127.0.0.1:5432/testdb
+          export GOOSE_MIGRATION_DIR=./taskmgr/goose
+          goose up
 
       - name: Load test data into PostgreSQL
         run: |
-          export PGPASSWORD=$POSTGRES_PASSWORD
-          psql -h localhost -U $POSTGRES_USER -d $POSTGRES_DB -f e2e/setup.sql
+          psql -h 127.0.0.1 -U test -d testdb -f e2e/setup.sql
+        env:
+          PGPASSWORD: test
 
-      - name:
+      - name: Check Data
         run: |
-          psql -h localhost -U $POSTGRES_USER -d $POSTGRES_DB -c "SELECT * FROM task;"
-          psql -h localhost -U $POSTGRES_USER -d $POSTGRES_DB -c "SELECT * FROM author;"
+          psql -h 127.0.0.1 -U test -d testdb -c "SELECT * FROM task;"
+          psql -h 127.0.0.1 -U test -d testdb -c "SELECT * FROM author;"
+        env:
+          PGPASSWORD: test
 
+      - name: Start taskmgr server
+        run: |
+          cd taskmgr && go run . &
+          sleep 1
+        env:
+          POSTGRES_PWD: test
+          USER: test
+          DATABASE: testdb
+          HOST: 127.0.0.1
+
+      - name: Run taskcli
+        run: |
+          cd taskcli
+          OUTPUT=$(go run . login -e 'simone@staffoli.com' -p 'Mastro')
+    
+          if [ "$OUTPUT" = "Login successful!" ]; then
+            echo "Test: login passed"
+          else
+            echo "Test: login failed!" >&2
+            exit 1  # Fail the GitHub Action
+          fi
+
+      - name: Stop Go server
+        run: pkill -f "go run ." || true  # Stop server after tests

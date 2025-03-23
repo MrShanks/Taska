@@ -4,4 +4,4 @@ description: A manager to orchestrate your tasks
 spec:
   host: localhost
   port: 8080
-  db_url: "postgres://taskauser:%s@localhost:5432/taskadb"
+  db_url: "postgres://%s:%s@%s:5432/%s"
