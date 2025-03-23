@@ -53,7 +53,7 @@ func (db *AuthorStore) SignUp(newAuthor *author.Author) error {
 	return nil
 }
 
-func (db *AuthorStore) SignIn(email, password string) error {
+func (db *AuthorStore) SignIn(email, password, token string) error {
 	query := fmt.Sprintf("SELECT * FROM author WHERE email = '%s'", email)
 
 	a := author.Author{}
