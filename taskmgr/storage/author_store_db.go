@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/MrShanks/Taska/common/author"
+	"github.com/MrShanks/Taska/utils"
 	"github.com/jackc/pgx/v5"
-	"golang.org/x/crypto/bcrypt"
 )
 
 type AuthorStore struct {
@@ -17,7 +17,7 @@ type AuthorStore struct {
 func (db *AuthorStore) SignUp(newAuthor *author.Author) error {
 	var err error
 
-	newAuthor.Password, err = crypt(&newAuthor.Password)
+	newAuthor.Password, err = utils.Crypt(&newAuthor.Password)
 	if err != nil {
 		return fmt.Errorf("error hashing password: %v", err)
 	}
@@ -50,25 +50,12 @@ func (db *AuthorStore) SignIn(email, password string) error {
 		return fmt.Errorf("couln't find an email match")
 	}
 
-	if compare(&a.Password, &password) != nil {
+	if utils.Compare(&a.Password, &password) != nil {
 		return fmt.Errorf("incorrect password: %v", err)
 	}
 
 	if err != nil {
 		return fmt.Errorf("error signing in the user: %v", err)
-	}
-	return nil
-}
-
-func crypt(text *string) (string, error) {
-	hash, err := bcrypt.GenerateFromPassword([]byte(*text), 10)
-	return string(hash), err
-}
-
-func compare(hashedText, clearText *string) error {
-	err := bcrypt.CompareHashAndPassword([]byte(*hashedText), []byte(*clearText))
-	if err != nil {
-		return err
 	}
 	return nil
 }
