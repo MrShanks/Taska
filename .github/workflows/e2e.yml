@@ -78,7 +78,7 @@ jobs:
             echo "Test: login passed"
           else
             echo "Test: login failed!" >&2
-            echo "$OUTPUT"
+            echo "Output: $OUTPUT is not what is expected"
             exit 1  # Fail the GitHub Action
           fi
 
@@ -86,11 +86,11 @@ jobs:
         run: |
           OUTPUT=$(go run -C taskcli/ . get)
     
-          if [ "$OUTPUT" = "Login successful!" ]; then
-            echo "Test: login passed"
+          if [ $( echo "$OUTPUT" | jq | grep 11111111 | wc -l) = 2]; then
+            echo "Test: Get passed"
           else
-            echo "Test: login failed!" >&2
-            echo "$OUTPUT"
+            echo "Test: Get failed!" >&2
+            echo "Output: $OUTPUT is not what is expected"
             exit 1  # Fail the GitHub Action
           fi
 
