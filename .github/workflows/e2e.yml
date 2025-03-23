@@ -70,15 +70,27 @@ jobs:
           DATABASE: testdb
           HOST: 127.0.0.1
 
-      - name: Run taskcli
+      - name: Test Login 
         run: |
-          cd taskcli
-          OUTPUT=$(go run . login -e 'simone@staffoli.com' -p 'Mastro')
+          OUTPUT=$(go run -C taskcli/ . login -e 'simone@staffoli.com' -p 'Mastro')
     
           if [ "$OUTPUT" = "Login successful!" ]; then
             echo "Test: login passed"
           else
             echo "Test: login failed!" >&2
+            echo "$OUTPUT"
+            exit 1  # Fail the GitHub Action
+          fi
+
+      - name: Test Get 
+        run: |
+          OUTPUT=$(go run -C taskcli/ . get)
+    
+          if [ "$OUTPUT" = "Login successful!" ]; then
+            echo "Test: login passed"
+          else
+            echo "Test: login failed!" >&2
+            echo "$OUTPUT"
             exit 1  # Fail the GitHub Action
           fi
 
