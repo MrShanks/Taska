@@ -62,7 +62,7 @@ jobs:
 
       - name: Start taskmgr server
         run: |
-          cd taskmgr && go run . &
+          go run -C taskmgr . &
           sleep 1
         env:
           POSTGRES_PWD: test
@@ -84,7 +84,27 @@ jobs:
 
       - name: Test Get 
         run: |
-          go run -C taskcli/ . get 2>&1 | grep '\['
+          OUTPUT=$(go run -C taskcli/ . get 2>&1 | jq 'length')
+
+          if [ "$OUTPUT" = 3 ]; then
+            echo "Test: get passed"
+          else
+            echo "Test: get failed!" >&2
+            echo "Output: $OUTPUT is not what is expected, there should be 3 tasks"
+            exit 1  # Fail the GitHub Action
+          fi
+
+      - name: Test Getone 
+        run: |
+          OUTPUT=$(go run -C taskcli/ . getone '33333333-3333-3333-3333-333333333333' 2>&1 | jq -r '.title')
+
+          if [ "$OUTPUT" = "Task 1" ]; then
+            echo "Test: getone passed"
+          else
+            echo "Test: getone failed!" >&2
+            echo "Output: $OUTPUT is not what is expected, task name should be Task 1"
+            exit 1  # Fail the GitHub Action
+          fi
 
       - name: Stop Go server
         run: pkill -f "go run ." || true  # Stop server after tests
