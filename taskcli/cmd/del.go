@@ -57,7 +57,7 @@ func delTask(taskcli *Taskcli, ctx context.Context, endpoint, token string) stri
 		return "Uuid not valid"
 	}
 
-	return "Task Successfully deleted"
+	return "Task Successfully deleted\n"
 }
 
 func init() {

@@ -70,6 +70,18 @@ jobs:
           DATABASE: testdb
           HOST: 127.0.0.1
 
+      - name: Test Signup 
+        run: |
+          OUTPUT=$(go run -C taskcli/ . signup -f 'new' -l 'user' -e 'new@user.com' -p 'user')
+    
+          if [ "$OUTPUT" = "Signup successful!" ]; then
+            echo "Test: signup passed"
+          else
+            echo "Test: signup failed!" >&2
+            echo "Output: $OUTPUT is not what is expected"
+            exit 1  # Fail the GitHub Action
+          fi
+
       - name: Test Login 
         run: |
           OUTPUT=$(go run -C taskcli/ . login -e 'simone@staffoli.com' -p 'Mastro')
@@ -103,6 +115,32 @@ jobs:
           else
             echo "Test: getone failed!" >&2
             echo "Output: $OUTPUT is not what is expected, task name should be Task 1"
+            exit 1  # Fail the GitHub Action
+          fi
+
+      - name: Test Mod 
+        run: |
+          go run -C taskcli/ . mod --id '33333333-3333-3333-3333-333333333333' -t 'new title'
+          OUTPUT=$(go run -C taskcli/ . getone '33333333-3333-3333-3333-333333333333' 2>&1 | jq -r '.title')
+
+          if [ "$OUTPUT" = "new title" ]; then
+            echo "Test: mod passed"
+          else
+            echo "Test: mod failed!" >&2
+            echo "Output: $OUTPUT is not what is expected, task name should be new title"
+            exit 1  # Fail the GitHub Action
+          fi
+
+      - name: Test Del 
+        run: |
+          go run -C taskcli/ . del --id '33333333-3333-3333-3333-333333333333'
+          OUTPUT=$(go run -C taskcli/ . get 2>&1 | jq 'length')
+
+          if [ "$OUTPUT" = 2 ]; then
+            echo "Test: del passed"
+          else
+            echo "Test: del failed!" >&2
+            echo "Output: $OUTPUT is not what is expected, there should be 2 tasks after delition"
             exit 1  # Fail the GitHub Action
           fi
 

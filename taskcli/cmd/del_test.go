@@ -31,7 +31,7 @@ func TestDelTask(t *testing.T) {
 				StatusCode: http.StatusOK,
 				Body:       http.NoBody,
 			},
-			want: "Task Successfully deleted",
+			want: "Task Successfully deleted\n",
 		},
 		{
 			name: "Delete task that doesn't exist returns task not found",
