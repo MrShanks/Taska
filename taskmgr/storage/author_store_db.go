@@ -19,7 +19,10 @@ func (db *AuthorStore) GetAuthorID(token string) (string, error) {
 
 	var authorID string
 
-	err := db.Conn.QueryRow(context.Background(), query).Scan(&authorID)
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+
+	err := db.Conn.QueryRow(ctx, query).Scan(&authorID)
 	if err == pgx.ErrNoRows {
 		return "", fmt.Errorf("no author found with token: %s. Error: %v", token, err)
 	}
@@ -73,7 +76,7 @@ func (db *AuthorStore) SignIn(email, password string) error {
 
 	query = fmt.Sprintf("UPDATE author SET token = '%v' WHERE email = '%s'", token, email)
 
-	_, err = db.Conn.Exec(context.Background(), query)
+	_, err = db.Conn.Exec(ctx, query)
 	if err != nil {
 		return fmt.Errorf("couldn't save author token: %v", err)
 	}
