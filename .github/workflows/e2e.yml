@@ -72,7 +72,7 @@ jobs:
 
       - name: Test Signup 
         run: |
-          OUTPUT=$(go run -C taskcli/ . signup -f 'new' -l 'user' -e 'new@user.com' -p 'Mastro')
+          OUTPUT=$(go run -C taskcli/ . signup -f 'new' -l 'user' -e 'new@user.com' -p 'New')
     
           if [ "$OUTPUT" = "Signup successful!" ]; then
             echo "Test: signup passed"
@@ -82,16 +82,9 @@ jobs:
             exit 1  # Fail the GitHub Action
           fi
 
-      - name: Check Data
-        run: |
-          psql -h 127.0.0.1 -U test -d testdb -c "SELECT * FROM task;"
-          psql -h 127.0.0.1 -U test -d testdb -c "SELECT * FROM author;"
-        env:
-          PGPASSWORD: test
-
       - name: Test Login 
         run: |
-          OUTPUT=$(go run -C taskcli/ . login -e 'new@user.com' -p 'user')
+          OUTPUT=$(go run -C taskcli/ . login -e 'simone@staffoli.com' -p 'Mastro')
     
           if [ "$OUTPUT" = "Login successful!" ]; then
             echo "Test: login passed"
