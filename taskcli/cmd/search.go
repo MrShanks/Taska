@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/MrShanks/Taska/utils"
@@ -26,14 +27,36 @@ either in the title or in the description will be printed on the stdout`,
 		keyword := args[0]
 		endpoint := fmt.Sprintf("/search/%s", keyword)
 
-		output := search(apiClient, ctx, endpoint, token)
+		data := FetchTasks(apiClient, ctx, endpoint, token)
 
-		cmd.Printf("Found: %s\n", color.YellowString(output))
+		for _, task := range data {
+			fmt.Printf("%-10s %v\n", "ID:", task.ID)
+			fmt.Printf("%-10s %s\n", "Title:", HighlightText(task.Title, keyword))
+			fmt.Printf("%-10s %s\n", "Desc:", HighlightText(task.Desc, keyword))
+			fmt.Printf("%-10s %v\n\n", "Author:", task.AuthorID)
+		}
 	},
 }
 
-func search(taskcli *Taskcli, ctx context.Context, endpoint, token string) string {
-	return endpoint
+func HighlightText(text, keyword string) string {
+	sText := strings.Fields(text)
+
+	var sb strings.Builder
+
+	for _, word := range sText {
+		if strings.Contains(word, keyword) {
+			sb.WriteString(color.YellowString(word) + " ")
+			continue
+		}
+		sb.WriteString(word + " ")
+	}
+
+	output := sb.String()
+
+	// remove last space
+	output = output[:len(output)-1]
+
+	return output
 }
 
 func init() {

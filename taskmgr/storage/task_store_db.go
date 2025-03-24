@@ -16,6 +16,33 @@ type TaskStore struct {
 	Conn *pgx.Conn
 }
 
+func (db *TaskStore) Search(keyword, authorID string) ([]*task.Task, error) {
+	var fetchedTasks []*task.Task
+	query := fmt.Sprintf("SELECT * FROM task WHERE author_id = '%s' AND (title LIKE '%%%s%%' OR description LIKE '%%%s%%');", authorID, keyword, keyword)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+
+	rows, err := db.Conn.Query(ctx, query)
+	if err != nil {
+		return nil, fmt.Errorf("Error querying database: %v", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		r := &task.Task{}
+
+		err := rows.Scan(&r.ID, &r.Title, &r.Desc, &r.AuthorID)
+		if err != nil {
+			return nil, err
+		}
+
+		fetchedTasks = append(fetchedTasks, r)
+	}
+
+	return fetchedTasks, nil
+}
+
 func (db *TaskStore) GetOne(id, authorID string) (*task.Task, error) {
 	query := fmt.Sprintf("SELECT * FROM task WHERE id = '%s';", id)
 

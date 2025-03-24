@@ -9,4 +9,5 @@ type Store interface {
 	Delete(id, authorID string) error
 	Update(id, title, desc, authorID string) (*Task, error)
 	BulkImport(tasks []*Task, authorID string)
+	Search(keyword, authorID string) ([]*Task, error)
 }
