@@ -39,24 +39,12 @@ either in the title or in the description will be printed on the stdout`,
 }
 
 func HighlightText(text, keyword string) string {
-	sText := strings.Fields(text)
-
-	var sb strings.Builder
-
-	for _, word := range sText {
-		if strings.Contains(word, keyword) {
-			sb.WriteString(color.YellowString(word) + " ")
-			continue
-		}
-		sb.WriteString(word + " ")
+	if keyword == "" {
+		return text
 	}
 
-	output := sb.String()
-
-	// remove last space
-	output = output[:len(output)-1]
-
-	return output
+	highlightedKeyword := color.YellowString(keyword)
+	return strings.ReplaceAll(text, keyword, highlightedKeyword)
 }
 
 func init() {
