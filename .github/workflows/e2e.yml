@@ -136,7 +136,7 @@ jobs:
           go run -C taskcli/ . del --id '33333333-3333-3333-3333-333333333333'
           OUTPUT=$(go run -C taskcli/ . get 2>&1 | jq 'length')
 
-          if [ "$OUTPUT" = 2 ]; then
+          if [ "$OUTPUT" = 1 ]; then
             echo "Test: del passed"
           else
             echo "Test: del failed!" >&2
