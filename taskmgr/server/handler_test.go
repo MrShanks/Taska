@@ -1,136 +1,11 @@
 package server
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
-
-	"github.com/google/uuid"
-
-	"github.com/MrShanks/Taska/common/author"
-	"github.com/MrShanks/Taska/common/task"
-	"github.com/MrShanks/Taska/taskmgr/storage"
 )
-
-func TestNewTaskHandler(t *testing.T) {
-	// Arrange
-	mockTaskStorage := storage.InMemoryDatabase{
-		Tasks: map[uuid.UUID]*task.Task{},
-	}
-
-	mockAuthorStorage := MockAuthorStorage{}
-
-	newDummyTask := task.New("new upcoming task", "title of a new fancy task")
-
-	body, err := json.Marshal(newDummyTask)
-	if err != nil {
-		t.Errorf("Unable to marshal the dummy task")
-	}
-
-	// Act
-	handler := NewTaskHandler(&mockTaskStorage, &mockAuthorStorage)
-
-	request, _ := http.NewRequestWithContext(context.Background(), http.MethodPost, "/new", bytes.NewBuffer(body))
-	response := httptest.NewRecorder()
-
-	handler(response, request)
-
-	// "Check if the pushed task has been created": mockDatabase.GetTasks(),
-	got := mockTaskStorage.GetTasks(uuid.Nil.String())
-	want := task.New(newDummyTask.Title, newDummyTask.Desc)
-
-	if got[0].Title != want.Title {
-		t.Errorf("got: %v, want: %v", got[0].Title, want.Title)
-	}
-}
-
-func TestGetTasksHandler(t *testing.T) {
-	t.Run("GET request on /tasks returns all tasks", func(t *testing.T) {
-		// Arrange
-		task1 := task.New("first", "Desc First")
-		task2 := task.New("second", "Desc Second")
-
-		tasks := map[uuid.UUID]*task.Task{
-			task1.ID: task1,
-			task2.ID: task2,
-		}
-
-		IMD := storage.InMemoryDatabase{
-			Tasks: tasks,
-		}
-
-		MAS := MockAuthorStorage{}
-
-		// Act
-		handler := GetAllTasksHandler(&IMD, &MAS)
-
-		request, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "/tasks", nil)
-		if err != nil {
-			t.Errorf("couldn't create request")
-		}
-		response := httptest.NewRecorder()
-
-		handler(response, request)
-
-		// Assert
-		got := response.Body.String()
-		wantBytes, _ := json.Marshal(IMD.GetTasks(uuid.Nil.String()))
-		want := string(wantBytes)
-
-		if got != want {
-			t.Errorf("got %q, want %q", got, want)
-		}
-	})
-}
-
-func TestUpdateTaskHandler(t *testing.T) {
-	t.Run("PUT request on /update/{task_id} updates the selected task", func(t *testing.T) {
-		// Arrange
-		task1 := &task.Task{
-			ID:    uuid.New(),
-			Title: "before change",
-			Desc:  "before the changes have been applied",
-		}
-
-		tasks := map[uuid.UUID]*task.Task{
-			task1.ID: task1,
-		}
-
-		IMD := storage.InMemoryDatabase{
-			Tasks: tasks,
-		}
-
-		MAS := MockAuthorStorage{}
-
-		// Act
-		handler := UpdateTaskHandler(&IMD, &MAS)
-
-		body := &bytes.Buffer{}
-		body.Write([]byte(`{"title":"new title","desc":"new description"}`))
-
-		request, err := http.NewRequestWithContext(context.Background(), http.MethodPut, fmt.Sprintf("/update/%s", task1.ID), body)
-		if err != nil {
-			t.Errorf("couldn't create request")
-		}
-		response := httptest.NewRecorder()
-
-		request.SetPathValue("id", task1.ID.String())
-
-		handler(response, request)
-
-		// Assert
-		got := response.Body.String()
-		want := fmt.Sprintf(`{"id":"%s","title":"new title","desc":"new description","AuthorID":"00000000-0000-0000-0000-000000000000"}`, task1.ID.String())
-
-		if got != want {
-			t.Errorf("got %q, want %q", got, want)
-		}
-	})
-}
 
 func TestGeneralHandler(t *testing.T) {
 
@@ -163,14 +38,4 @@ func TestGeneralHandler(t *testing.T) {
 			}
 		})
 	}
-}
-
-type MockAuthorStorage struct{}
-
-func (mas *MockAuthorStorage) SignIn(email, password, token string) error { return nil }
-
-func (mas *MockAuthorStorage) SignUp(newAuthor *author.Author) error { return nil }
-
-func (mas *MockAuthorStorage) GetAuthorID(token string) (string, error) {
-	return uuid.Nil.String(), nil
 }

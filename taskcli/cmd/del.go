@@ -29,7 +29,7 @@ var delCmd = &cobra.Command{
 			cmd.Printf("Couldn't retrieve id flag: %v", err)
 		}
 
-		cmd.Printf("%s", delTask(apiClient, ctx, fmt.Sprintf("/delete/%s", id), token))
+		cmd.Printf("%s\n", delTask(apiClient, ctx, fmt.Sprintf("/delete/%s", id), token))
 	},
 }
 

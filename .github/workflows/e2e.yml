@@ -1,0 +1,161 @@
+name: E2E Tests
+
+on: [push]
+
+jobs:
+  e2e-tests:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: testdb
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+
+      - name: Install PostgreSQL client
+        run: sudo apt-get install -y postgresql-client
+
+      - name: Verify database connection
+        run: |
+          psql -h 127.0.0.1 -U test -d testdb -c "SELECT 'Database is ready!'"
+        env:
+          PGPASSWORD: test
+
+      - name: Install goose
+        run: go install github.com/pressly/goose/v3/cmd/goose@latest
+
+      - name: Run migrations
+        run: |
+          export GOOSE_DRIVER=postgres
+          export GOOSE_DBSTRING=postgres://test:test@127.0.0.1:5432/testdb
+          export GOOSE_MIGRATION_DIR=./taskmgr/goose
+          goose up
+
+      - name: Load test data into PostgreSQL
+        run: |
+          psql -h 127.0.0.1 -U test -d testdb -f e2e/setup.sql
+        env:
+          PGPASSWORD: test
+
+      - name: Check Data
+        run: |
+          psql -h 127.0.0.1 -U test -d testdb -c "SELECT * FROM task;"
+          psql -h 127.0.0.1 -U test -d testdb -c "SELECT * FROM author;"
+        env:
+          PGPASSWORD: test
+
+      - name: Start taskmgr server
+        run: |
+          go run -C taskmgr . &
+          sleep 1
+        env:
+          POSTGRES_PWD: test
+          DBUSER: test
+          DATABASE: testdb
+          HOST: 127.0.0.1
+
+      - name: Test Signup 
+        run: |
+          OUTPUT=$(go run -C taskcli/ . signup -f 'new' -l 'user' -e 'new@user.com' -p 'New')
+    
+          if [ "$OUTPUT" = "Signup successful!" ]; then
+            echo "Test: signup passed"
+          else
+            echo "Test: signup failed!" >&2
+            echo "Output: $OUTPUT is not what is expected"
+            exit 1  # Fail the GitHub Action
+          fi
+
+      - name: Test Login 
+        run: |
+          OUTPUT=$(go run -C taskcli/ . login -e 'simone@staffoli.com' -p 'Mastro')
+    
+          if [ "$OUTPUT" = "Login successful!" ]; then
+            echo "Test: login passed"
+          else
+            echo "Test: login failed!" >&2
+            echo "Output: $OUTPUT is not what is expected"
+            exit 1  # Fail the GitHub Action
+          fi
+
+      - name: Test Get 
+        run: |
+          OUTPUT=$(go run -C taskcli/ . get 2>&1 | jq 'length')
+
+          if [ "$OUTPUT" = 2 ]; then
+            echo "Test: get passed"
+          else
+            echo "Test: get failed!" >&2
+            echo "Output: $OUTPUT is not what is expected, there should be 2 tasks"
+            exit 1  # Fail the GitHub Action
+          fi
+
+      - name: Test New
+        run: |
+          go run -C taskcli/ . new -t 'Title test task' -d 'Desc test task'
+          OUTPUT=$(go run -C taskcli/ . get 2>&1 | jq 'length')
+
+          if [ "$OUTPUT" = 3 ]; then
+            echo "Test: new passed"
+          else
+            echo "Test: new failed!" >&2
+            echo "Output: $OUTPUT is not what is expected, there should be 3 tasks"
+            exit 1  # Fail the GitHub Action
+          fi
+
+      - name: Test Getone 
+        run: |
+          OUTPUT=$(go run -C taskcli/ . getone '33333333-3333-3333-3333-333333333333' 2>&1 | jq -r '.title')
+
+          if [ "$OUTPUT" = "Task 1" ]; then
+            echo "Test: getone passed"
+          else
+            echo "Test: getone failed!" >&2
+            echo "Output: $OUTPUT is not what is expected, task name should be Task 1"
+            exit 1  # Fail the GitHub Action
+          fi
+
+      - name: Test Mod 
+        run: |
+          go run -C taskcli/ . mod --id '33333333-3333-3333-3333-333333333333' -t 'new title'
+          OUTPUT=$(go run -C taskcli/ . getone '33333333-3333-3333-3333-333333333333' 2>&1 | jq -r '.title')
+
+          if [ "$OUTPUT" = "new title" ]; then
+            echo "Test: mod passed"
+          else
+            echo "Test: mod failed!" >&2
+            echo "Output: $OUTPUT is not what is expected, task name should be new title"
+            exit 1  # Fail the GitHub Action
+          fi
+
+      - name: Test Del 
+        run: |
+          go run -C taskcli/ . del --id '33333333-3333-3333-3333-333333333333'
+          OUTPUT=$(go run -C taskcli/ . get 2>&1 | jq 'length')
+
+          if [ "$OUTPUT" = 2 ]; then
+            echo "Test: del passed"
+          else
+            echo "Test: del failed!" >&2
+            echo "Output: $OUTPUT is not what is expected, there should be 2 tasks after delition"
+            exit 1  # Fail the GitHub Action
+          fi
+
+      - name: Stop Go server
+        run: pkill -f "go run ." || true  # Stop server after tests

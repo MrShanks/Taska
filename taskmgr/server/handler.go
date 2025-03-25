@@ -99,6 +99,16 @@ func NewTaskHandler(taskStore task.Store, authorStore author.Store) http.Handler
 
 		newTaskID := taskStore.New(&newTask)
 
+		if newTaskID == uuid.Nil {
+			log.Printf("error, task with same name already exists")
+			w.WriteHeader(http.StatusInternalServerError)
+			_, err = w.Write([]byte("error, task with same name already exists"))
+			if err != nil {
+				log.Printf("Couldn't write response: %v", err)
+			}
+			return
+		}
+
 		log.Printf("New task created with ID: %s", newTaskID)
 
 		w.WriteHeader(http.StatusCreated)
