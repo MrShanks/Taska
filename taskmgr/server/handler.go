@@ -58,6 +58,7 @@ func GetAllTasksHandler(taskStore task.Store, authorStore author.Store) http.Han
 		jsonTasks, err := json.Marshal(tasks)
 		if err != nil {
 			log.Printf("Couldn't Marshal tasks into json format: %v", err)
+
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -332,6 +333,7 @@ func homeHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("Got request on / endpoint")
 
 	w.WriteHeader(http.StatusOK)
+
 	_, err := w.Write([]byte("Welcome to your dashboard"))
 	if err != nil {
 		log.Printf("Couldn't write response: %v", err)
