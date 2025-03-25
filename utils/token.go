@@ -30,6 +30,7 @@ func CreateToken(author author.Author) (string, error) {
 	if err != nil {
 		return "", err
 	}
+<<<<<<< HEAD
 	return singnedToken, nil
 }
 
