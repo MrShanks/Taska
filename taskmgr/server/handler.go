@@ -11,6 +11,7 @@ import (
 
 	"github.com/MrShanks/Taska/common/author"
 	"github.com/MrShanks/Taska/common/task"
+	"github.com/MrShanks/Taska/utils"
 )
 
 const contentType = "Content-Type"
@@ -319,6 +320,14 @@ func Signin(authorStore author.Store) http.HandlerFunc {
 			return
 		}
 
+		token, err := utils.CreateToken(signInAuthor)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			log.Printf("Error creating token: %v", err)
+			return
+		}
+
+		// token := uuid.New().String()
 		loggedAuthors[token] = signInAuthor.Email
 
 		w.Header().Set("token", token)

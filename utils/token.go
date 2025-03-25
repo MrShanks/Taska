@@ -5,7 +5,46 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
+
+	"github.com/MrShanks/Taska/common/author"
+	"github.com/golang-jwt/jwt/v5"
 )
+
+var secret string = "secret"
+
+func CreateToken(author author.Author) (string, error) {
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256,
+		jwt.MapClaims{
+			"sub": author.Firstname,
+			"iss": "taskmgr",
+			"iat": time.Now().Unix(),
+			"exp": time.Now().Add(time.Second * 30).Unix(),
+		})
+
+	singnedToken, err := token.SignedString([]byte(secret))
+	if err != nil {
+		return "", err
+	}
+	fmt.Println(singnedToken)
+	return singnedToken, nil
+}
+
+func VerifyToken(tokenString string) error {
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		return []byte("secret-key"), nil
+	})
+
+	if err != nil {
+		return err
+	}
+
+	if !token.Valid {
+		return fmt.Errorf("invalid token")
+	}
+
+	return nil
+}
 
 func ReadToken() string {
 	home, err := os.UserHomeDir()

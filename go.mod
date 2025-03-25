@@ -4,6 +4,7 @@ go 1.23.5
 
 require (
 	github.com/fatih/color v1.18.0
+	github.com/golang-jwt/jwt/v5 v5.2.2
 	github.com/google/uuid v1.6.0
 	github.com/jackc/pgx/v5 v5.7.3
 	github.com/spf13/cobra v1.8.1
