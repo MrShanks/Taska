@@ -36,6 +36,7 @@ func initTransactionLog() error {
 	for ok && err == nil {
 		select {
 		case err, ok = <-errs:
+			log.Printf("%v", err)
 		case e, ok = <-events:
 			switch e.Type {
 			case logger.Del:
