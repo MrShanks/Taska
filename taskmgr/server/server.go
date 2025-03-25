@@ -32,7 +32,7 @@ func NewServer(cfg *utils.Config, taskStore task.Store, authorStore author.Store
 
 func ConnectDB(ctx context.Context, dbURL string) (*pgx.Conn, error) {
 	password := os.Getenv("POSTGRES_PWD")
-	user := os.Getenv("USER")
+	user := os.Getenv("DBUSER")
 	database := os.Getenv("DATABASE")
 	host := os.Getenv("HOST")
 	dburl := fmt.Sprintf(dbURL, user, password, host, database)

@@ -69,7 +69,7 @@ func newTask(taskcli *Taskcli, ctx context.Context, endpoint, title, desc, token
 	}
 	defer response.Body.Close()
 
-	return fmt.Sprintf("%v\n", string(bodyBytes))
+	return fmt.Sprintf("%v", string(bodyBytes))
 }
 
 func init() {
