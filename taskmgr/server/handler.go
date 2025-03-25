@@ -58,6 +58,7 @@ func GetAllTasksHandler(taskStore task.Store, authorStore author.Store) http.Han
 		jsonTasks, err := json.Marshal(tasks)
 		if err != nil {
 			log.Printf("Couldn't Marshal tasks into json format: %v", err)
+
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -116,6 +117,8 @@ func NewTaskHandler(taskStore task.Store, authorStore author.Store) http.Handler
 		if err != nil {
 			log.Printf("Couldn't write response: %v", err)
 		}
+
+		EventLogger.WriteNew(newTask.ID, newTask.Title, newTask.Desc)
 	}
 }
 
@@ -160,6 +163,8 @@ func UpdateTaskHandler(taskStore task.Store, authorStore author.Store) http.Hand
 		if err != nil {
 			log.Printf("Couldn't write response: %v", err)
 		}
+
+		EventLogger.WriteMod(updatedTask.ID, updatedTask.Title, updatedTask.Desc)
 	}
 }
 
@@ -179,6 +184,8 @@ func DeleteTaskHandler(taskStore task.Store, authorStore author.Store) http.Hand
 		}
 
 		w.WriteHeader(http.StatusAccepted)
+
+		EventLogger.WriteDel(uuid.MustParse(taskID))
 	}
 }
 
@@ -332,6 +339,7 @@ func homeHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("Got request on / endpoint")
 
 	w.WriteHeader(http.StatusOK)
+
 	_, err := w.Write([]byte("Welcome to your dashboard"))
 	if err != nil {
 		log.Printf("Couldn't write response: %v", err)
