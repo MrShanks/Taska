@@ -7,7 +7,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/MrShanks/Taska/common/task"
 	"github.com/MrShanks/Taska/utils"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
@@ -63,18 +62,6 @@ var getCmd = &cobra.Command{
 
 		cmd.Printf("%s\n", string(output))
 	},
-}
-
-func FetchTasks(taskcli *Taskcli, ctx context.Context, endpoint string, token string) []*task.Task {
-	var tasks []*task.Task
-
-	err := fetch(taskcli, ctx, endpoint, &tasks, token)
-	if err != nil {
-		fmt.Printf("Error fetching tasks: %v\n", err)
-		return nil
-	}
-
-	return tasks
 }
 
 func init() {

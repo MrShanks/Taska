@@ -11,6 +11,7 @@ import (
 	"os/exec"
 	"strings"
 
+	"github.com/MrShanks/Taska/common/task"
 	"github.com/spf13/cobra"
 )
 
@@ -134,4 +135,16 @@ func makeRequest(taskcli *Taskcli, ctx context.Context, data map[string]string) 
 	}
 
 	return response, nil
+}
+
+func FetchTasks(taskcli *Taskcli, ctx context.Context, endpoint string, token string) []*task.Task {
+	var tasks []*task.Task
+
+	err := fetch(taskcli, ctx, endpoint, &tasks, token)
+	if err != nil {
+		fmt.Printf("Error fetching tasks: %v\n", err)
+		return nil
+	}
+
+	return tasks
 }

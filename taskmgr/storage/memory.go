@@ -15,6 +15,10 @@ type InMemoryDatabase struct {
 	Tasks map[uuid.UUID]*task.Task
 }
 
+func (imd *InMemoryDatabase) Search(keyword, authorID string) ([]*task.Task, error) {
+	return nil, nil
+}
+
 func (imd *InMemoryDatabase) GetOne(id, authorID string) (*task.Task, error) {
 	UUID, err := uuid.Parse(id)
 	if err != nil {

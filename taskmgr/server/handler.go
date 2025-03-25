@@ -18,7 +18,7 @@ const appJson = "application/json"
 
 func GetOneTaskHandler(taskStore task.Store, authorStore author.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		log.Printf("Got request on /task endpoint\n")
+		log.Printf("Got request on /task endpoint")
 
 		taskID := r.PathValue("id")
 
@@ -26,7 +26,7 @@ func GetOneTaskHandler(taskStore task.Store, authorStore author.Store) http.Hand
 
 		selectedTask, err := taskStore.GetOne(taskID, authorID)
 		if err != nil {
-			log.Printf("Couldn't retrieve task from store: %v\n", err)
+			log.Printf("Couldn't retrieve task from store: %v", err)
 			w.WriteHeader(http.StatusNotFound)
 			return
 		}
@@ -49,7 +49,7 @@ func GetOneTaskHandler(taskStore task.Store, authorStore author.Store) http.Hand
 
 func GetAllTasksHandler(taskStore task.Store, authorStore author.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		log.Printf("Got request on /tasks endpoint\n")
+		log.Printf("Got request on /tasks endpoint")
 
 		authorID := tokenToAuthor(r, authorStore)
 
@@ -72,7 +72,7 @@ func GetAllTasksHandler(taskStore task.Store, authorStore author.Store) http.Han
 
 func NewTaskHandler(taskStore task.Store, authorStore author.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		log.Printf("Got request on /new endpoint\n")
+		log.Printf("Got request on /new endpoint")
 
 		body, err := io.ReadAll(r.Body)
 		if err != nil {
@@ -111,7 +111,7 @@ func NewTaskHandler(taskStore task.Store, authorStore author.Store) http.Handler
 
 func UpdateTaskHandler(taskStore task.Store, authorStore author.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		log.Printf("Got request on /update endpoint\n")
+		log.Printf("Got request on /update endpoint")
 
 		taskID := r.PathValue("id")
 		authorID := tokenToAuthor(r, authorStore)
@@ -155,7 +155,7 @@ func UpdateTaskHandler(taskStore task.Store, authorStore author.Store) http.Hand
 
 func DeleteTaskHandler(taskStore task.Store, authorStore author.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		log.Printf("Got request on /delete endpoint\n")
+		log.Printf("Got request on /delete endpoint")
 
 		taskID := r.PathValue("id")
 
@@ -172,9 +172,39 @@ func DeleteTaskHandler(taskStore task.Store, authorStore author.Store) http.Hand
 	}
 }
 
+func SearchTaskHandler(taskStore task.Store, authorStore author.Store) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		log.Printf("Got request on /search endpoint")
+
+		keyword := r.PathValue("keyword")
+
+		authorID := tokenToAuthor(r, authorStore)
+
+		tasks, err := taskStore.Search(keyword, authorID)
+		if err != nil {
+			w.WriteHeader(http.StatusNotFound)
+			log.Printf("Couldn't find any task: %v", err)
+			return
+		}
+
+		jsonTasks, err := json.Marshal(tasks)
+		if err != nil {
+			log.Printf("Couldn't Marshal tasks into json format: %v", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		w.WriteHeader(http.StatusFound)
+		_, err = w.Write(jsonTasks)
+		if err != nil {
+			log.Printf("Couldn't write response: %v", err)
+		}
+	}
+}
+
 func ImportTaskHandler(taskStore task.Store, authorStore author.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		log.Printf("Got request on /import endpoint\n")
+		log.Printf("Got request on /import endpoint")
 
 		body, err := io.ReadAll(r.Body)
 		if err != nil {
@@ -212,7 +242,7 @@ func ImportTaskHandler(taskStore task.Store, authorStore author.Store) http.Hand
 
 func Signup(authorStore author.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		log.Printf("Got request on /signup endpoint\n")
+		log.Printf("Got request on /signup endpoint")
 
 		body, err := io.ReadAll(r.Body)
 		if err != nil {
