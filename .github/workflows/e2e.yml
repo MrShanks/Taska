@@ -111,7 +111,7 @@ jobs:
         run: |
           OUTPUT=$(go run -C taskcli/ . get 2>&1 | jq 'length')
 
-          if [ "$OUTPUT" = 2 ]; then
+          if [ "$OUTPUT" = 3 ]; then
             echo "Test: get passed"
           else
             echo "Test: get failed!" >&2
