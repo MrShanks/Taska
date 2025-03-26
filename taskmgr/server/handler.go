@@ -5,6 +5,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/google/uuid"
 	"gopkg.in/yaml.v3"
@@ -98,12 +99,19 @@ func NewTaskHandler(taskStore task.Store, authorStore author.Store) http.Handler
 
 		newTask.AuthorID = uuid.MustParse(authorID)
 
-		newTaskID := taskStore.New(&newTask)
-
-		if newTaskID == uuid.Nil {
-			log.Printf("error, task with same name already exists")
+		newTaskID, err := taskStore.New(&newTask)
+		if strings.Contains(err.Error(), "uplicate key value violates unique constraint") {
+			log.Printf("Error, task with same name already exists")
 			w.WriteHeader(http.StatusInternalServerError)
 			_, err = w.Write([]byte("error, task with same name already exists"))
+			if err != nil {
+				log.Printf("Couldn't write response: %v", err)
+			}
+			return
+		} else if err != nil {
+			log.Printf("Could not insert new record into the database with error: %v", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			_, err = w.Write([]byte("error inserting new task"))
 			if err != nil {
 				log.Printf("Couldn't write response: %v", err)
 			}

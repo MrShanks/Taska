@@ -25,7 +25,7 @@ func (db *TaskStore) Search(keyword, authorID string) ([]*task.Task, error) {
 
 	rows, err := db.Conn.Query(ctx, query)
 	if err != nil {
-		return nil, fmt.Errorf("Error querying database: %v", err)
+		return nil, fmt.Errorf("error querying database: %v", err)
 	}
 	defer rows.Close()
 
@@ -86,7 +86,7 @@ func (db *TaskStore) GetTasks(authorID string) []*task.Task {
 	return fetchedTasks
 }
 
-func (db *TaskStore) New(task *task.Task) uuid.UUID {
+func (db *TaskStore) New(task *task.Task) (uuid.UUID, error) {
 	query := fmt.Sprintf("INSERT INTO task (author_id, title, description) VALUES ('%s', '%s', '%s');", task.AuthorID, task.Title, task.Desc)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
@@ -94,18 +94,17 @@ func (db *TaskStore) New(task *task.Task) uuid.UUID {
 
 	_, err := db.Conn.Exec(ctx, query)
 	if err != nil {
-		log.Printf("Could not insert new record into the database %v", err)
-		return uuid.Nil
+		return uuid.Nil, err
 	}
 
 	query = fmt.Sprintf("SELECT id FROM task WHERE title='%s'", task.Title)
 	row := db.Conn.QueryRow(ctx, query).Scan(&task.ID)
 	if row == pgx.ErrNoRows {
 		log.Printf("No task was found with ID: %v", err)
-		return uuid.Nil
+		return uuid.Nil, err
 	}
 
-	return task.ID
+	return task.ID, nil
 }
 
 func (db *TaskStore) Update(id, title, desc, authorID string) (*task.Task, error) {
