@@ -16,7 +16,7 @@ var secret string = "secret"
 func CreateToken(author author.Author) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256,
 		jwt.MapClaims{
-			"sub": author.Firstname,
+			"sub": author.Email,
 			"iss": "taskmgr",
 			"iat": time.Now().Unix(),
 			"exp": time.Now().Add(time.Second * 30).Unix(),
@@ -32,7 +32,7 @@ func CreateToken(author author.Author) (string, error) {
 
 func VerifyToken(tokenString string) error {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		return []byte("secret-key"), nil
+		return []byte(secret), nil
 	})
 
 	if err != nil {

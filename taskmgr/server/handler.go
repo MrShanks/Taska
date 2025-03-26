@@ -90,17 +90,11 @@ func NewTaskHandler(taskStore task.Store, authorStore author.Store) http.Handler
 			return
 		}
 
-		token := r.Header.Get("Token")
-
-		authorID, err := authorStore.GetAuthorID(token)
-		if err != nil {
-			log.Printf("error fetching author id: %v", err)
-		}
+		authorID := tokenToAuthor(r, authorStore)
 
 		newTask.AuthorID = uuid.MustParse(authorID)
 
 		newTaskID := taskStore.New(&newTask)
-
 		if newTaskID == uuid.Nil {
 			log.Printf("error, task with same name already exists")
 			w.WriteHeader(http.StatusInternalServerError)
@@ -313,13 +307,6 @@ func Signin(authorStore author.Store) http.HandlerFunc {
 			return
 		}
 
-		token := uuid.New().String()
-		if err = authorStore.SignIn(signInAuthor.Email, signInAuthor.Password, token); err != nil {
-			w.WriteHeader(http.StatusUnauthorized)
-			log.Printf("Error during authentication: %v", err)
-			return
-		}
-
 		token, err := utils.CreateToken(signInAuthor)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
@@ -327,8 +314,13 @@ func Signin(authorStore author.Store) http.HandlerFunc {
 			return
 		}
 
-		// token := uuid.New().String()
-		loggedAuthors[token] = signInAuthor.Email
+		if err = authorStore.SignIn(signInAuthor.Email, signInAuthor.Password, token); err != nil {
+			w.WriteHeader(http.StatusUnauthorized)
+			log.Printf("Error during authentication: %v", err)
+			return
+		}
+
+		LoggedAuthorToken = token
 
 		w.Header().Set("token", token)
 		w.WriteHeader(http.StatusOK)
