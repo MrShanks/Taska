@@ -80,6 +80,5 @@ func (db *AuthorStore) SignIn(email, password, token string) error {
 	if err != nil {
 		return fmt.Errorf("couldn't save author token: %v", err)
 	}
-
 	return nil
 }

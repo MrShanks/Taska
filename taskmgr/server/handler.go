@@ -11,6 +11,7 @@ import (
 
 	"github.com/MrShanks/Taska/common/author"
 	"github.com/MrShanks/Taska/common/task"
+	"github.com/MrShanks/Taska/utils"
 )
 
 const contentType = "Content-Type"
@@ -89,17 +90,11 @@ func NewTaskHandler(taskStore task.Store, authorStore author.Store) http.Handler
 			return
 		}
 
-		token := r.Header.Get("Token")
-
-		authorID, err := authorStore.GetAuthorID(token)
-		if err != nil {
-			log.Printf("error fetching author id: %v", err)
-		}
+		authorID := tokenToAuthor(r, authorStore)
 
 		newTask.AuthorID = uuid.MustParse(authorID)
 
 		newTaskID := taskStore.New(&newTask)
-
 		if newTaskID == uuid.Nil {
 			log.Printf("error, task with same name already exists")
 			w.WriteHeader(http.StatusInternalServerError)
@@ -312,14 +307,20 @@ func Signin(authorStore author.Store) http.HandlerFunc {
 			return
 		}
 
-		token := uuid.New().String()
+		token, err := utils.CreateToken(signInAuthor)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			log.Printf("Error creating token: %v", err)
+			return
+		}
+
 		if err = authorStore.SignIn(signInAuthor.Email, signInAuthor.Password, token); err != nil {
 			w.WriteHeader(http.StatusUnauthorized)
 			log.Printf("Error during authentication: %v", err)
 			return
 		}
 
-		loggedAuthors[token] = signInAuthor.Email
+		LoggedAuthorToken = token
 
 		w.Header().Set("token", token)
 		w.WriteHeader(http.StatusOK)

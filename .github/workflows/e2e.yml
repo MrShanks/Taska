@@ -69,6 +69,7 @@ jobs:
           DBUSER: test
           DATABASE: testdb
           HOST: 127.0.0.1
+          TOKENSECRET: test
 
       - name: Test Signup 
         run: |
