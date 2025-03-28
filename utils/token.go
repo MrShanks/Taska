@@ -19,11 +19,13 @@ func CreateToken(author author.Author) (string, error) {
 			"sub": author.Email,
 			"iss": "taskmgr",
 			"iat": time.Now().Unix(),
-			"exp": time.Now().Add(time.Second * 30).Unix(),
+			"exp": time.Now().Add(time.Minute * 60).Unix(),
 		})
+
 	if secret == "" {
 		return "", fmt.Errorf("jwt secret not set")
 	}
+
 	singnedToken, err := token.SignedString([]byte(secret))
 	if err != nil {
 		return "", err
@@ -35,18 +37,16 @@ func VerifyToken(tokenString string) (*jwt.Token, error) {
 	if secret == "" {
 		return nil, fmt.Errorf("jwt secret not set")
 	}
+
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		return []byte(secret), nil
 	})
-
 	if err != nil {
 		return nil, fmt.Errorf("error during token verification: %v", err)
 	}
-
 	if !token.Valid {
 		return nil, fmt.Errorf("invalid token")
 	}
-
 	return token, nil
 }
 
