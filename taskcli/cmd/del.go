@@ -26,7 +26,7 @@ var delCmd = &cobra.Command{
 
 		id, err := cmd.Flags().GetString("id")
 		if err != nil {
-			cmd.Printf("Couldn't retrieve id flag: %v", err)
+			cmd.Printf("Couldn't retrieve id flag: %v\n", err)
 		}
 
 		cmd.Printf("%s\n", delTask(apiClient, ctx, fmt.Sprintf("/delete/%s", id), token))
@@ -38,25 +38,21 @@ func delTask(taskcli *Taskcli, ctx context.Context, endpoint, token string) stri
 
 	request, err := http.NewRequestWithContext(ctx, "DELETE", taskcli.ServerURL.String(), nil)
 	if err != nil {
-		return fmt.Sprintf("Couldn't create request: %v", err)
+		return fmt.Sprintf("Couldn't create request: %v\n", err)
 	}
 
 	request.Header.Set("token", token)
 
 	response, err := taskcli.HttpClient.Do(request)
 	if err != nil {
-		return fmt.Sprintf("Couldn't get a response from the server: %v", err)
+		return fmt.Sprintf("Couldn't get a response from the server: %v\n", err)
 	}
 	defer response.Body.Close()
 
-	if response.StatusCode == http.StatusNotFound {
-		return "Task not found"
+	_, err = CheckStatus(response.StatusCode)
+	if err != nil {
+		return fmt.Sprintf("%v", err)
 	}
-
-	if response.StatusCode == http.StatusBadRequest {
-		return "Uuid not valid"
-	}
-
 	return "Task Successfully deleted"
 }
 

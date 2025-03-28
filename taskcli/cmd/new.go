@@ -24,7 +24,7 @@ var newCmd = &cobra.Command{
 }
 
 func runNewCmd(cmd *cobra.Command, args []string) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
 	apiClient := NewApiClient()
@@ -48,26 +48,31 @@ func newTask(taskcli *Taskcli, ctx context.Context, endpoint, title, desc, token
 
 	jsonTask, err := json.Marshal(task.New(title, desc))
 	if err != nil {
-		return fmt.Sprintf("Couldn't marshal task, error: %v", err)
+		return fmt.Sprintf("Couldn't marshal task, error: %v\n", err)
 	}
 
 	request, err := http.NewRequestWithContext(ctx, "POST", taskcli.ServerURL.String(), bytes.NewReader(jsonTask))
 	if err != nil {
-		return fmt.Sprintf("Couldn't create request: %v", err)
+		return fmt.Sprintf("Couldn't create request: %v\n", err)
 	}
 
 	request.Header.Set("token", token)
 
 	response, err := taskcli.HttpClient.Do(request)
 	if err != nil {
-		return fmt.Sprintf("Couldn't get a response from the server: %v", err)
+		return fmt.Sprintf("Couldn't get a response from the server: %v\n", err)
+	}
+	defer response.Body.Close()
+
+	_, err = CheckStatus(response.StatusCode)
+	if err != nil {
+		return fmt.Sprintf("%v", err)
 	}
 
 	bodyBytes, err := io.ReadAll(response.Body)
 	if err != nil {
-		return fmt.Sprintf("Couldn't read response body: %v", err)
+		return fmt.Sprintf("Couldn't read response body: %v\n", err)
 	}
-	defer response.Body.Close()
 
 	return fmt.Sprintf("%v", string(bodyBytes))
 }

@@ -11,6 +11,11 @@ func LoggedInOnly(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if LoggedAuthorToken == "" {
 			log.Println("Error: User not authenticated")
+			w.WriteHeader(http.StatusUnauthorized)
+			if _, err := w.Write([]byte("You must login first")); err != nil {
+				log.Printf("couldn't write response")
+			}
+			w.Write([]byte(nil))
 			return
 		}
 		token, err := utils.VerifyToken(LoggedAuthorToken)
@@ -20,6 +25,7 @@ func LoggedInOnly(next http.HandlerFunc) http.HandlerFunc {
 			if _, err := w.Write([]byte("You must login first")); err != nil {
 				log.Printf("couldn't write response")
 			}
+			w.Write([]byte(nil))
 			return
 		}
 		log.Printf("Login accomplished with token: %v\n", token)

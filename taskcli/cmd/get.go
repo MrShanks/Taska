@@ -28,7 +28,11 @@ var getCmd = &cobra.Command{
 
 		token := utils.ReadToken()
 
-		data := FetchTasks(apiClient, ctx, "/tasks", token)
+		data, err := FetchTasks(apiClient, ctx, "/tasks", token)
+		if err != nil {
+			cmd.Printf("%v", err)
+			return
+		}
 
 		if data == nil {
 			cmd.Printf("Server response was empty\n")
