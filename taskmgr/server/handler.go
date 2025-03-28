@@ -29,7 +29,10 @@ func GetOneTaskHandler(taskStore task.Store, authorStore author.Store) http.Hand
 		if err != nil {
 			log.Printf("Couldn't retrieve task from store: %v", err)
 			w.WriteHeader(http.StatusNotFound)
-			w.Write([]byte(nil))
+			_, err := w.Write([]byte(nil))
+			if err != nil {
+				log.Printf("Couldn't write response: %v", err)
+			}
 			return
 		}
 
@@ -37,7 +40,10 @@ func GetOneTaskHandler(taskStore task.Store, authorStore author.Store) http.Hand
 		if err != nil {
 			log.Printf("Couldn't Marshal tasks into json format: %v", err)
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(nil))
+			_, err := w.Write([]byte(nil))
+			if err != nil {
+				log.Printf("Couldn't write response: %v", err)
+			}
 			return
 		}
 
@@ -63,7 +69,10 @@ func GetAllTasksHandler(taskStore task.Store, authorStore author.Store) http.Han
 			log.Printf("Couldn't Marshal tasks into json format: %v", err)
 
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(nil))
+			_, err := w.Write([]byte(nil))
+			if err != nil {
+				log.Printf("Couldn't write response: %v", err)
+			}
 			return
 		}
 
@@ -139,7 +148,10 @@ func UpdateTaskHandler(taskStore task.Store, authorStore author.Store) http.Hand
 		err = json.Unmarshal(reqBody, &changes)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte(nil))
+			_, err := w.Write([]byte(nil))
+			if err != nil {
+				log.Printf("Couldn't write response: %v", err)
+			}
 			log.Printf("Couldn't unmarshal the body. Error type: %s", err)
 			return
 		}
@@ -147,7 +159,10 @@ func UpdateTaskHandler(taskStore task.Store, authorStore author.Store) http.Hand
 		updatedTask, err := taskStore.Update(taskID, changes.Title, changes.Desc, authorID)
 		if err != nil {
 			w.WriteHeader(http.StatusNotFound)
-			w.Write([]byte(nil))
+			_, err := w.Write([]byte(nil))
+			if err != nil {
+				log.Printf("Couldn't write response: %v", err)
+			}
 			log.Printf("Error updating task: %v", err)
 			return
 		}
@@ -156,7 +171,10 @@ func UpdateTaskHandler(taskStore task.Store, authorStore author.Store) http.Hand
 		if err != nil {
 			log.Printf("Couldn't marshal task into json format: %v", err)
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(nil))
+			_, err := w.Write([]byte(nil))
+			if err != nil {
+				log.Printf("Couldn't write response: %v", err)
+			}
 			return
 		}
 
@@ -186,7 +204,10 @@ func DeleteTaskHandler(taskStore task.Store, authorStore author.Store) http.Hand
 		}
 
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(nil))
+		_, err = w.Write([]byte(nil))
+		if err != nil {
+			log.Printf("Couldn't write response: %v", err)
+		}
 
 		EventLogger.WriteDel(uuid.MustParse(taskID))
 	}
@@ -203,7 +224,10 @@ func SearchTaskHandler(taskStore task.Store, authorStore author.Store) http.Hand
 		tasks, err := taskStore.Search(keyword, authorID)
 		if err != nil {
 			w.WriteHeader(http.StatusNotFound)
-			w.Write([]byte(nil))
+			_, err := w.Write([]byte(nil))
+			if err != nil {
+				log.Printf("Couldn't write response: %v", err)
+			}
 			log.Printf("Couldn't find any task: %v", err)
 			return
 		}
@@ -212,7 +236,10 @@ func SearchTaskHandler(taskStore task.Store, authorStore author.Store) http.Hand
 		if err != nil {
 			log.Printf("Couldn't Marshal tasks into json format: %v", err)
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(nil))
+			_, err := w.Write([]byte(nil))
+			if err != nil {
+				log.Printf("Couldn't write response: %v", err)
+			}
 			return
 		}
 
@@ -232,7 +259,10 @@ func ImportTaskHandler(taskStore task.Store, authorStore author.Store) http.Hand
 		if err != nil {
 			log.Printf("error reading request body: %v", err)
 			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte(nil))
+			_, err := w.Write([]byte(nil))
+			if err != nil {
+				log.Printf("Couldn't write response: %v", err)
+			}
 			return
 		}
 
@@ -244,7 +274,10 @@ func ImportTaskHandler(taskStore task.Store, authorStore author.Store) http.Hand
 			if err != nil {
 				log.Printf("Couldn't unmarshal tasks into a slice of tasks: %v", err)
 				w.WriteHeader(http.StatusBadRequest)
-				w.Write([]byte(nil))
+				_, err := w.Write([]byte(nil))
+				if err != nil {
+					log.Printf("Couldn't write response: %v", err)
+				}
 				return
 			}
 		} else if cType == "application/x-yaml" {
@@ -252,7 +285,10 @@ func ImportTaskHandler(taskStore task.Store, authorStore author.Store) http.Hand
 			if err != nil {
 				log.Printf("Couldn't unmarshal tasks into a slice of tasks: %v", err)
 				w.WriteHeader(http.StatusBadRequest)
-				w.Write([]byte(nil))
+				_, err := w.Write([]byte(nil))
+				if err != nil {
+					log.Printf("Couldn't write response: %v", err)
+				}
 				return
 			}
 		}
@@ -262,7 +298,10 @@ func ImportTaskHandler(taskStore task.Store, authorStore author.Store) http.Hand
 		taskStore.BulkImport(tasks, authorID)
 
 		w.WriteHeader(http.StatusCreated)
-		w.Write([]byte(nil))
+		_, err = w.Write([]byte(nil))
+		if err != nil {
+			log.Printf("Couldn't write response: %v", err)
+		}
 	}
 }
 
@@ -273,7 +312,10 @@ func Signup(authorStore author.Store) http.HandlerFunc {
 		body, err := io.ReadAll(r.Body)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte(nil))
+			_, err := w.Write([]byte(nil))
+			if err != nil {
+				log.Printf("Couldn't write response: %v", err)
+			}
 			log.Printf("Couldn't read the body. Error type: %v", err)
 			return
 		}
@@ -284,14 +326,20 @@ func Signup(authorStore author.Store) http.HandlerFunc {
 		err = json.Unmarshal(body, &newAuthor)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte(nil))
+			_, err := w.Write([]byte(nil))
+			if err != nil {
+				log.Printf("Couldn't write response: %v", err)
+			}
 			log.Printf("Couldn't unmarshal the body. Error type: %s", err)
 			return
 		}
 
 		if err = authorStore.SignUp(&newAuthor); err != nil {
 			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte(nil))
+			_, err := w.Write([]byte(nil))
+			if err != nil {
+				log.Printf("Couldn't write response: %v", err)
+			}
 			log.Printf("Couldn't sign you up: %v", err)
 			return
 		}
@@ -310,7 +358,10 @@ func Signin(authorStore author.Store) http.HandlerFunc {
 		body, err := io.ReadAll(r.Body)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte(nil))
+			_, err := w.Write([]byte(nil))
+			if err != nil {
+				log.Printf("Couldn't write response: %v", err)
+			}
 			log.Printf("Couldn't read the body. Error type: %v", err)
 			return
 		}
@@ -321,7 +372,10 @@ func Signin(authorStore author.Store) http.HandlerFunc {
 		err = json.Unmarshal(body, &signInAuthor)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte(nil))
+			_, err := w.Write([]byte(nil))
+			if err != nil {
+				log.Printf("Couldn't write response: %v", err)
+			}
 			log.Printf("Couldn't unmarshal the body. Error type: %s", err)
 			return
 		}
@@ -329,14 +383,20 @@ func Signin(authorStore author.Store) http.HandlerFunc {
 		token, err := utils.CreateToken(signInAuthor)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(nil))
+			_, err := w.Write([]byte(nil))
+			if err != nil {
+				log.Printf("Couldn't write response: %v", err)
+			}
 			log.Printf("Error creating token: %v", err)
 			return
 		}
 
 		if err = authorStore.SignIn(signInAuthor.Email, signInAuthor.Password, token); err != nil {
 			w.WriteHeader(http.StatusUnauthorized)
-			w.Write([]byte(nil))
+			_, err := w.Write([]byte(nil))
+			if err != nil {
+				log.Printf("Couldn't write response: %v", err)
+			}
 			log.Printf("Error during authentication: %v", err)
 			return
 		}
@@ -373,7 +433,10 @@ func faviconHandler(w http.ResponseWriter, r *http.Request) {
 	// This is needed because browser always issue a second
 	// http request to get the favicon for a website
 	w.WriteHeader(http.StatusNoContent)
-	w.Write([]byte(nil))
+	_, err := w.Write([]byte(nil))
+	if err != nil {
+		log.Printf("Couldn't write response: %v", err)
+	}
 }
 
 func tokenToAuthor(r *http.Request, authorStore author.Store) string {
