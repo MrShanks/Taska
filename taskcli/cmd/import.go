@@ -62,7 +62,7 @@ func importTasks(taskcli *Taskcli, ctx context.Context, endpoint, path, token st
 	case ".json":
 		request.Header.Set("Content-Type", "application/json")
 	default:
-		return fmt.Sprintf("unsupported file format: only .yaml and .json are allowed")
+		return fmt.Sprintln("unsupported file format: only .yaml and .json are allowed")
 	}
 
 	response, err := taskcli.HttpClient.Do(request)
