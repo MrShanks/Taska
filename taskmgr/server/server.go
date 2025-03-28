@@ -19,8 +19,6 @@ import (
 )
 
 var EventLogger logger.TransactionLogger
-
-// var LoggedAuthors = make(map[string]string)
 var LoggedAuthorToken string
 
 func initTransactionLog() error {

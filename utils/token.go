@@ -26,24 +26,23 @@ func CreateToken(author author.Author) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	fmt.Println(singnedToken)
 	return singnedToken, nil
 }
 
-func VerifyToken(tokenString string) error {
+func VerifyToken(tokenString string) (*jwt.Token, error) {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		return []byte(secret), nil
 	})
 
 	if err != nil {
-		return err
+		return nil, fmt.Errorf("error during token verification: %v", err)
 	}
 
 	if !token.Valid {
-		return fmt.Errorf("invalid token")
+		return nil, fmt.Errorf("invalid token")
 	}
 
-	return nil
+	return token, nil
 }
 
 func ReadToken() string {
