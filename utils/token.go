@@ -11,7 +11,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-var secret string = "secret"
+var secret string = os.Getenv("TOKENSECRET")
 
 func CreateToken(author author.Author) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256,
@@ -21,7 +21,9 @@ func CreateToken(author author.Author) (string, error) {
 			"iat": time.Now().Unix(),
 			"exp": time.Now().Add(time.Second * 30).Unix(),
 		})
-
+	if secret == "" {
+		return "", fmt.Errorf("jwt secret not set")
+	}
 	singnedToken, err := token.SignedString([]byte(secret))
 	if err != nil {
 		return "", err
@@ -30,6 +32,9 @@ func CreateToken(author author.Author) (string, error) {
 }
 
 func VerifyToken(tokenString string) (*jwt.Token, error) {
+	if secret == "" {
+		return nil, fmt.Errorf("jwt secret not set")
+	}
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		return []byte(secret), nil
 	})
