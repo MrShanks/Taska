@@ -97,12 +97,9 @@ func fetch(taskcli *Taskcli, ctx context.Context, endpoint string, result any, t
 	}
 	defer response.Body.Close()
 
-	if response.StatusCode == http.StatusNotFound {
-		return fmt.Errorf("task not found, status code: %v", response.StatusCode)
-	}
-
-	if response.StatusCode == http.StatusUnauthorized {
-		return fmt.Errorf("token might be invalid, empty or expired")
+	_, err = CheckStatus(response.StatusCode)
+	if err != nil {
+		return fmt.Errorf("%v", err)
 	}
 
 	data, err := io.ReadAll(response.Body)
@@ -137,14 +134,32 @@ func makeRequest(taskcli *Taskcli, ctx context.Context, data map[string]string) 
 	return response, nil
 }
 
-func FetchTasks(taskcli *Taskcli, ctx context.Context, endpoint string, token string) []*task.Task {
+func FetchTasks(taskcli *Taskcli, ctx context.Context, endpoint string, token string) ([]*task.Task, error) {
 	var tasks []*task.Task
 
 	err := fetch(taskcli, ctx, endpoint, &tasks, token)
 	if err != nil {
-		fmt.Printf("Error fetching tasks: %v\n", err)
-		return nil
+		return nil, fmt.Errorf("error fetching tasks: %v", err)
 	}
 
-	return tasks
+	return tasks, nil
+}
+
+func CheckStatus(header int) (string, error) {
+	switch header {
+	default:
+		return "", nil
+	case http.StatusUnauthorized:
+		return "", fmt.Errorf("authentication required. Please log in to access this resource")
+	case http.StatusNotFound:
+		return "", fmt.Errorf("not Found. The requested resource is missing")
+	case http.StatusInternalServerError:
+		return "", fmt.Errorf("oops! Something went wrong on our side")
+	case http.StatusCreated:
+		return "Resource created", nil
+	case http.StatusBadRequest:
+		return "", fmt.Errorf("invalid request. Please verify the data and try again")
+	case http.StatusNoContent:
+		return "All good, but there’s no content to return", nil
+	}
 }

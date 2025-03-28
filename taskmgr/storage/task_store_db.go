@@ -25,7 +25,7 @@ func (db *TaskStore) Search(keyword, authorID string) ([]*task.Task, error) {
 
 	rows, err := db.Conn.Query(ctx, query)
 	if err != nil {
-		return nil, fmt.Errorf("Error querying database: %v", err)
+		return nil, fmt.Errorf("error querying database: %v", err)
 	}
 	defer rows.Close()
 

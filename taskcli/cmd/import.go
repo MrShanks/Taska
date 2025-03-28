@@ -31,30 +31,27 @@ func runImportCmd(cmd *cobra.Command, args []string) {
 
 	token := utils.ReadToken()
 
-	err := importTasks(apiClient, ctx, "/import", args[0], token)
-	if err != nil {
-		cmd.Printf("error running importTasks: %v", err)
-		return
-	}
+	result := importTasks(apiClient, ctx, "/import", args[0], token)
+	cmd.Printf("%s\n", result)
 }
 
-func importTasks(taskcli *Taskcli, ctx context.Context, endpoint, path, token string) error {
+func importTasks(taskcli *Taskcli, ctx context.Context, endpoint, path, token string) string {
 	taskcli.ServerURL.Path = endpoint
 
 	file, err := os.Open(path)
 	if err != nil {
-		return fmt.Errorf("error opening file %s: %v", path, err)
+		return fmt.Sprintf("error opening file %s: %v", path, err)
 	}
 	defer file.Close()
 
 	data, err := io.ReadAll(file)
 	if err != nil {
-		return fmt.Errorf("failed to read file %s: %v", path, err)
+		return fmt.Sprintf("failed to read file %s: %v", path, err)
 	}
 
 	request, err := http.NewRequestWithContext(ctx, "POST", taskcli.ServerURL.String(), bytes.NewReader(data))
 	if err != nil {
-		return fmt.Errorf("failed to create HTTP request: %v", err)
+		return fmt.Sprintf("failed to create HTTP request: %v", err)
 	}
 
 	request.Header.Set("token", token)
@@ -65,16 +62,22 @@ func importTasks(taskcli *Taskcli, ctx context.Context, endpoint, path, token st
 	case ".json":
 		request.Header.Set("Content-Type", "application/json")
 	default:
-		return fmt.Errorf("unsupported file format: only .yaml and .json are allowed")
+		return fmt.Sprintln("unsupported file format: only .yaml and .json are allowed")
 	}
 
 	response, err := taskcli.HttpClient.Do(request)
 	if err != nil {
-		return fmt.Errorf("couldn't get a response from the server: %v", err)
+		return fmt.Sprintf("couldn't get a response from the server: %v", err)
 	}
 	defer response.Body.Close()
+
+	_, err = CheckStatus(response.StatusCode)
+	if err != nil {
+		return fmt.Sprintf("%v", err)
+	}
+
 	fmt.Printf("Imported file: %v\n", file.Name())
-	return nil
+	return ""
 }
 
 func init() {

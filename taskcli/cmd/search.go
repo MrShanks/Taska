@@ -27,7 +27,11 @@ either in the title or in the description will be printed on the stdout`,
 		keyword := args[0]
 		endpoint := fmt.Sprintf("/search/%s", keyword)
 
-		data := FetchTasks(apiClient, ctx, endpoint, token)
+		data, err := FetchTasks(apiClient, ctx, endpoint, token)
+		if err != nil {
+			cmd.Printf("%v", err)
+			return
+		}
 
 		for _, task := range data {
 			fmt.Printf("%-10s %v\n", "ID:", task.ID)

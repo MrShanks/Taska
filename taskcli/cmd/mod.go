@@ -18,7 +18,7 @@ var modCmd = &cobra.Command{
 	Long:  "Modify a task by passing its id",
 
 	Run: func(cmd *cobra.Command, args []string) {
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 		defer cancel()
 
 		apiClient := NewApiClient()
@@ -59,10 +59,10 @@ func modTask(taskcli *Taskcli, ctx context.Context, endpoint string, body io.Rea
 	}
 	defer response.Body.Close()
 
-	if response.StatusCode == http.StatusNotFound {
-		return "Task not found\n"
+	_, err = CheckStatus(response.StatusCode)
+	if err != nil {
+		return fmt.Sprintf("%v", err)
 	}
-
 	return "Task Successfully updated\n"
 }
 
