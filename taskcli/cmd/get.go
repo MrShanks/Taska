@@ -7,6 +7,10 @@ import (
 	"os"
 	"time"
 
+	"github.com/charmbracelet/bubbles/list"
+	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
+
 	"github.com/MrShanks/Taska/utils"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
@@ -26,18 +30,46 @@ var getCmd = &cobra.Command{
 		format, err := cmd.Flags().GetString("export")
 		cobra.CheckErr(err)
 
+		interactive, err := cmd.Flags().GetBool("interactive")
+		cobra.CheckErr(err)
+
 		token := utils.ReadToken()
 
 		data := FetchTasks(apiClient, ctx, "/tasks", token)
 
 		if data == nil {
-			cmd.Printf("Server response was empty\n")
 			return
 		}
 
-		var bytes []byte
+		if interactive {
+			items := []list.Item{}
+
+			for _, task := range data {
+				items = append(items, item{title: task.Title, desc: task.Desc})
+			}
+
+			m := model{list: list.New(items, list.NewDefaultDelegate(), 0, 0)}
+
+			m.list.Styles.Title = lipgloss.NewStyle().
+				Foreground(lipgloss.Color("#00A5FF")).
+				Bold(true).
+				Border(lipgloss.RoundedBorder(), true).
+				PaddingLeft(3).
+				PaddingRight(3)
+
+			m.list.Title = "My Task List"
+
+			p := tea.NewProgram(m, tea.WithAltScreen())
+
+			if _, err := p.Run(); err != nil {
+				cmd.Printf("Error running program: %v", err)
+				os.Exit(1)
+			}
+			return
+		}
 
 		if isFlagSet(format) {
+			var bytes []byte
 			switch format {
 			case "yaml":
 				bytes, err = yaml.Marshal(data)
@@ -65,7 +97,9 @@ var getCmd = &cobra.Command{
 }
 
 func init() {
-	getCmd.Flags().StringP("export", "e", "", "export tasks in either json|yaml")
+	getCmd.Flags().StringP("export", "e", "", "[e]xport tasks in either json|yaml")
+	getCmd.Flags().BoolP("interactive", "i", false, "enter [i]nteractive mode")
+	getCmd.MarkFlagsMutuallyExclusive("export", "interactive")
 
 	rootCmd.AddCommand(getCmd)
 }
