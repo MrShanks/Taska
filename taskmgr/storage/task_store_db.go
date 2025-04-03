@@ -32,7 +32,7 @@ func (db *TaskStore) Search(keyword, authorID string) ([]*task.Task, error) {
 	for rows.Next() {
 		r := &task.Task{}
 
-		err := rows.Scan(&r.ID, &r.Title, &r.Desc, &r.AuthorID)
+		err := rows.Scan(&r.ID, &r.Title, &r.Desc, &r.AuthorID, &r.Complete)
 		if err != nil {
 			return nil, err
 		}
@@ -51,7 +51,7 @@ func (db *TaskStore) GetOne(id, authorID string) (*task.Task, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 
-	row := db.Conn.QueryRow(ctx, query).Scan(&t.ID, &t.Title, &t.Desc, &t.AuthorID)
+	row := db.Conn.QueryRow(ctx, query).Scan(&t.ID, &t.Title, &t.Desc, &t.AuthorID, &t.Complete)
 	if row == pgx.ErrNoRows {
 		return nil, fmt.Errorf("task not found")
 	}
@@ -76,7 +76,7 @@ func (db *TaskStore) GetTasks(authorID string) []*task.Task {
 	for rows.Next() {
 		r := &task.Task{}
 
-		err := rows.Scan(&r.ID, &r.Title, &r.Desc, &r.AuthorID)
+		err := rows.Scan(&r.ID, &r.Title, &r.Desc, &r.AuthorID, &r.Complete)
 		if err != nil {
 			log.Printf("%v", err)
 		}
@@ -135,7 +135,7 @@ func (db *TaskStore) Update(id, title, desc, authorID string) (*task.Task, error
 	ctx, cancel = context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 
-	err = db.Conn.QueryRow(ctx, query).Scan(&updatedTask.ID, &updatedTask.Title, &updatedTask.Desc, &updatedTask.AuthorID)
+	err = db.Conn.QueryRow(ctx, query).Scan(&updatedTask.ID, &updatedTask.Title, &updatedTask.Desc, &updatedTask.AuthorID, &updatedTask.Complete)
 	if err != nil {
 		return nil, fmt.Errorf("error querying updated task: %v", err)
 	}

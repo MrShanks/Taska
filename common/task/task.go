@@ -6,12 +6,14 @@ type Task struct {
 	ID       uuid.UUID `json:"id"`
 	Title    string    `json:"title"`
 	Desc     string    `json:"desc"`
+	Complete bool      `json:"complete"`
 	AuthorID uuid.UUID
 }
 
 func New(title, desc string) *Task {
 	return &Task{
-		Title: title,
-		Desc:  desc,
+		Title:    title,
+		Desc:     desc,
+		Complete: false,
 	}
 }

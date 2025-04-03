@@ -1,13 +1,13 @@
 -- +goose Up
 -- +goose StatementBegin
 
-ALTER TABLE author ADD COLUMN token TEXT;
+ALTER TABLE task ADD COLUMN complete boolean NOT NULL DEFAULT false;
 
 -- +goose StatementEnd
 
 -- +goose Down
 -- +goose StatementBegin
 
-ALTER TABLE author DROP COLUMN token;
+ALTER TABLE task DROP COLUMN complete;
 
 -- +goose StatementEnd
