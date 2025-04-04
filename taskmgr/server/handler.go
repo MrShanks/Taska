@@ -2,13 +2,11 @@ package server
 
 import (
 	"encoding/json"
-	"errors"
 	"io"
 	"log"
 	"net/http"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgconn"
 	"gopkg.in/yaml.v3"
 
 	"github.com/MrShanks/Taska/common/author"
@@ -102,21 +100,10 @@ func NewTaskHandler(taskStore task.Store, authorStore author.Store) http.Handler
 
 		newTaskID, err := taskStore.New(&newTask)
 
-		var pgErr *pgconn.PgError
-		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
-			log.Printf("Error, task with same name already exists")
-			w.WriteHeader(http.StatusInternalServerError)
-			_, err = w.Write([]byte("error, task with same name already exists"))
-			if err != nil {
-				log.Printf("Couldn't write response: %v", err)
-			}
-			return
-		}
-
 		if err != nil {
 			log.Printf("Could not insert new record into the database with error: %v", err)
 			w.WriteHeader(http.StatusInternalServerError)
-			_, err = w.Write([]byte("error inserting new task"))
+			_, err = w.Write([]byte(err.Error()))
 			if err != nil {
 				log.Printf("Couldn't write response: %v", err)
 			}
