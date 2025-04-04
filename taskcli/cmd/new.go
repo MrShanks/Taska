@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -69,7 +70,13 @@ func newTask(taskcli *Taskcli, ctx context.Context, endpoint, title, desc, token
 	}
 	defer response.Body.Close()
 
-	return fmt.Sprintf("%v", string(bodyBytes))
+	body := string(bodyBytes)
+
+	if strings.Contains(body, "duplicate key") {
+		return "Task title already exists"
+	}
+
+	return fmt.Sprintf("%v", body)
 }
 
 func init() {
