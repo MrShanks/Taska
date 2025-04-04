@@ -2,12 +2,13 @@ package server
 
 import (
 	"encoding/json"
+	"errors"
 	"io"
 	"log"
 	"net/http"
-	"strings"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgconn"
 	"gopkg.in/yaml.v3"
 
 	"github.com/MrShanks/Taska/common/author"
@@ -100,7 +101,9 @@ func NewTaskHandler(taskStore task.Store, authorStore author.Store) http.Handler
 		newTask.AuthorID = uuid.MustParse(authorID)
 
 		newTaskID, err := taskStore.New(&newTask)
-		if strings.Contains(err.Error(), "uplicate key value violates unique constraint") {
+
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
 			log.Printf("Error, task with same name already exists")
 			w.WriteHeader(http.StatusInternalServerError)
 			_, err = w.Write([]byte("error, task with same name already exists"))
@@ -108,7 +111,9 @@ func NewTaskHandler(taskStore task.Store, authorStore author.Store) http.Handler
 				log.Printf("Couldn't write response: %v", err)
 			}
 			return
-		} else if err != nil {
+		}
+
+		if err != nil {
 			log.Printf("Could not insert new record into the database with error: %v", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			_, err = w.Write([]byte("error inserting new task"))

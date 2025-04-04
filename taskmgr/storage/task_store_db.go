@@ -100,7 +100,6 @@ func (db *TaskStore) New(task *task.Task) (uuid.UUID, error) {
 	query = fmt.Sprintf("SELECT id FROM task WHERE title='%s'", task.Title)
 	row := db.Conn.QueryRow(ctx, query).Scan(&task.ID)
 	if row == pgx.ErrNoRows {
-		log.Printf("No task was found with ID: %v", err)
 		return uuid.Nil, err
 	}
 

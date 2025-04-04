@@ -86,7 +86,6 @@ func Listen(cfg *utils.Config) error {
 
 	ctxConnection, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
-
 	conn, err := ConnectDB(ctxConnection, cfg.Spec.DB_URL)
 	if err != nil {
 		return err
