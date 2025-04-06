@@ -68,7 +68,7 @@ var getCmd = &cobra.Command{
 			return
 		}
 
-		if isFlagSet(format) {
+		if isFlagValueSet(format) {
 			var bytes []byte
 			switch format {
 			case "yaml":
@@ -104,7 +104,7 @@ func init() {
 	rootCmd.AddCommand(getCmd)
 }
 
-func isFlagSet(flagValue string) bool {
+func isFlagValueSet(flagValue string) bool {
 	return flagValue != ""
 }
 
